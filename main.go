@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
-	//"github.com/go-chi/cors"
+	"github.com/rs/cors"
 	//"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 )
@@ -21,17 +21,15 @@ func main() {
 	r := chi.NewRouter()
 	apiRouter := chi.NewRouter()
 
-	r.Mount("/v1", apiRouter)
-	//r.Use(cors.Handler
+	// Use default options for now
+	r.Use(cors.Default().Handler)
 
-	corsMux := MiddlewareCors(r)
-	// server
-	server := &http.Server{
-		Addr: ":" + port,
-		Handler: corsMux,
-	}
-	log.Printf("Serving on port: %s\n", port)
-	server.ListenAndServe()
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("welcome"))
+	})
+	r.Mount("/v1",apiRouter)
+
+	http.ListenAndServe(":"+port, r)
 }
 
 func MiddlewareCors(next http.Handler) http.Handler {
