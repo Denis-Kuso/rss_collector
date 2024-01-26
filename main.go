@@ -1,6 +1,8 @@
 package main
 
+
 import (
+	_ "github.com/lib/pq" // importing for side effects
 	"encoding/json"
 	"log"
 	"net/http"
@@ -9,16 +11,36 @@ import (
 	"github.com/rs/cors"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
+	"database/sql"
 )
+
+type stateConfig struct {
+	DB *database.Queries
+}
+
+
 func main() {
-	const PORT string = "PORT"
+	const (
+		PORT string = "PORT"
+		CONN string = "CONN"
+	)
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Failed loading enviroment.")
 	}
 	port := os.Getenv(PORT)
+	dbURL := os.Getenv(CONN)
+	if (port == "" || dbURL == "") {
+		log.Fatalf("Environment variables undefined\n")
+	}
+	// Init db
+	db, err := sql.Open("postgres", dbURL)
+	dbQueries := database.New(db)
+	state := stateConfig{dbQueries}
 	ready := "/readiness"
 	errorEndpoint := "/err"
+	create_users := "/users"
 
 	r := chi.NewRouter()
 	apiRouter := chi.NewRouter()
@@ -39,6 +61,7 @@ func main() {
 		respondWithError(w, http.StatusInternalServerError, "Internal server error")
 		})
 
+	apiRouter.Post(create_users,state.CreateUser)
 	server := &http.Server{
 		Addr: ":" + port,
 		Handler: r,
