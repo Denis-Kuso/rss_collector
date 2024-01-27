@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"context"
 	"io"
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
 	"github.com/google/uuid"
@@ -13,7 +12,6 @@ import (
 
 func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request){
 
-	ctx := context.Background()
 	type userRequest struct{
 	Name string `json:"name"`
 	}
@@ -30,11 +28,10 @@ func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	userId := uuid.New()
-	user, err := s.DB.CreateUser(ctx, database.CreateUserParams{
-		ID: userId,
-		CreatedAt:time.Now(),
-		UpdatedAt: time.Now(),// or save time.Now()?
+	user, err := s.DB.CreateUser(r.Context(), database.CreateUserParams{
+		ID: uuid.New(),
+		CreatedAt:time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 		Name: userReq.Name,
 	})
 	if err != nil {
