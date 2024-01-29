@@ -38,9 +38,11 @@ func main() {
 	db, err := sql.Open("postgres", dbURL)
 	dbQueries := database.New(db)
 	state := stateConfig{dbQueries}
+
 	ready := "/readiness"
 	errorEndpoint := "/err"
 	users := "/users"
+	feeds := "/feeds"
 
 	r := chi.NewRouter()
 	apiRouter := chi.NewRouter()
@@ -63,6 +65,7 @@ func main() {
 
 	apiRouter.Post(users, state.CreateUser)
 	apiRouter.Get(users, state.GetUserData)
+	apiRouter.Post(feeds, state.CreateFeed)
 	server := &http.Server{
 		Addr: ":" + port,
 		Handler: r,

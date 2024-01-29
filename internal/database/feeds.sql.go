@@ -7,7 +7,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,7 +29,7 @@ type CreateFeedParams struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string
-	Url       sql.NullString
+	Url       string
 	UserID    uuid.UUID
 }
 
