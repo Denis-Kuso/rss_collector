@@ -40,7 +40,7 @@ func main() {
 	state := stateConfig{dbQueries}
 	ready := "/readiness"
 	errorEndpoint := "/err"
-	create_users := "/users"
+	users := "/users"
 
 	r := chi.NewRouter()
 	apiRouter := chi.NewRouter()
@@ -61,7 +61,8 @@ func main() {
 		respondWithError(w, http.StatusInternalServerError, "Internal server error")
 		})
 
-	apiRouter.Post(create_users,state.CreateUser)
+	apiRouter.Post(users, state.CreateUser)
+	apiRouter.Get(users, state.GetUserData)
 	server := &http.Server{
 		Addr: ":" + port,
 		Handler: r,

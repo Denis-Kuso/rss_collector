@@ -26,3 +26,6 @@ references.txt
 
 #environment variables
 .env
+
+# Curl testing
+curlTest
