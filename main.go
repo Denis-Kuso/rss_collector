@@ -64,8 +64,8 @@ func main() {
 		})
 
 	apiRouter.Post(users, state.CreateUser)
-	apiRouter.Get(users, state.GetUserData)
-	apiRouter.Post(feeds, state.CreateFeed)
+	apiRouter.Get(users, state.MiddlewareAuth(state.GetUserData))
+	apiRouter.Post(feeds, state.MiddlewareAuth(state.CreateFeed))
 	server := &http.Server{
 		Addr: ":" + port,
 		Handler: r,
@@ -73,22 +73,8 @@ func main() {
 
 	log.Printf("Serving on port: %s\n", port)
 	server.ListenAndServe()
-	//http.ListenAndServe(":"+port, r)
 }
 
-//func MiddlewareCors(next http.Handler) http.Handler {
-//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//		w.Header().Set("Access-Control-Allow-Origin", "*")
-//		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-//		w.Header().Set("Access-Control-Allow-Headers", "*")
-//		if r.Method == "OPTIONS" {
-//			w.WriteHeader(http.StatusOK)
-//			return
-//		}
-//		log.Printf("Method: %v; URL:%v", r.Method, r.URL)
-//		next.ServeHTTP(w, r)
-//	})
-//}
 
 func respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
