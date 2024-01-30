@@ -30,3 +30,7 @@ VALUES (
     $2,
     $3)
 RETURNING *;
+-- name: RemoveFeedFollow :one
+DELETE FROM feed_follows 
+WHERE ID_FF=$1
+RETURNING *;

@@ -128,3 +128,16 @@ func (q *Queries) GetAllFeeds(ctx context.Context) ([]Feed, error) {
 	}
 	return items, nil
 }
+
+const removeFeedFollow = `-- name: RemoveFeedFollow :one
+DELETE FROM feed_follows 
+WHERE ID_FF=$1
+RETURNING user_id, feed_id, id_ff
+`
+
+func (q *Queries) RemoveFeedFollow(ctx context.Context, idFf uuid.UUID) (FeedFollow, error) {
+	row := q.db.QueryRowContext(ctx, removeFeedFollow, idFf)
+	var i FeedFollow
+	err := row.Scan(&i.UserID, &i.FeedID, &i.IDFf)
+	return i, err
+}

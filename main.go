@@ -19,6 +19,9 @@ type stateConfig struct {
 	DB *database.Queries
 }
 
+const (
+	QUERY_FEED_FOLLOW = "feedFollowID"
+	)
 
 func main() {
 	const (
@@ -67,6 +70,7 @@ func main() {
 	apiRouter.Get(users, state.MiddlewareAuth(state.GetUserData))
 	apiRouter.Post(feeds, state.MiddlewareAuth(state.CreateFeed))
 	apiRouter.Post(follow_feeds, state.MiddlewareAuth(state.FollowFeed))
+	apiRouter.Delete(follow_feeds +"/{"+QUERY_FEED_FOLLOW +"}", state.MiddlewareAuth(state.UnfollowFeed))
 	server := &http.Server{
 		Addr: ":" + port,
 		Handler: r,
