@@ -34,3 +34,7 @@ RETURNING *;
 DELETE FROM feed_follows 
 WHERE ID_FF=$1
 RETURNING *;
+
+-- name: GetAllFeedFollows :many
+SELECT * FROM feed_follows
+WHERE user_id=$1;
