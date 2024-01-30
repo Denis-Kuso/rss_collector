@@ -66,6 +66,7 @@ func main() {
 	apiRouter.Post(users, state.CreateUser)
 	apiRouter.Get(users, state.MiddlewareAuth(state.GetUserData))
 	apiRouter.Post(feeds, state.MiddlewareAuth(state.CreateFeed))
+	apiRouter.Get(feeds, state.GetFeeds)
 	server := &http.Server{
 		Addr: ":" + port,
 		Handler: r,
