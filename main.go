@@ -43,7 +43,7 @@ func main() {
 	errorEndpoint := "/err"
 	users := "/users"
 	feeds := "/feeds"
-
+	follow_feeds := "/feed_follows"
 	r := chi.NewRouter()
 	apiRouter := chi.NewRouter()
 
@@ -66,7 +66,7 @@ func main() {
 	apiRouter.Post(users, state.CreateUser)
 	apiRouter.Get(users, state.MiddlewareAuth(state.GetUserData))
 	apiRouter.Post(feeds, state.MiddlewareAuth(state.CreateFeed))
-	apiRouter.Get(feeds, state.GetFeeds)
+	apiRouter.Post(follow_feeds, state.MiddlewareAuth(state.FollowFeed))
 	server := &http.Server{
 		Addr: ":" + port,
 		Handler: r,
