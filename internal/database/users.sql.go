@@ -19,7 +19,8 @@ VALUES (
     $2,
     $3,
     $4,
-    encode(sha256(random()::text::bytea), 'hex'))
+    encode(sha256(random()::text::bytea), 'hex')
+)
 RETURNING id, created_at, updated_at, name, api_key
 `
 
@@ -48,12 +49,12 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const getUserByAPI = `-- name: GetUserByAPI :one
-SELECT id, created_at, updated_at, name, api_key FROM users WHERE api_key=$1
+const getUserByAPIKey = `-- name: GetUserByAPIKey :one
+SELECT id, created_at, updated_at, name, api_key FROM users WHERE api_key = $1
 `
 
-func (q *Queries) GetUserByAPI(ctx context.Context, apiKey string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByAPI, apiKey)
+func (q *Queries) GetUserByAPIKey(ctx context.Context, apiKey string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByAPIKey, apiKey)
 	var i User
 	err := row.Scan(
 		&i.ID,
