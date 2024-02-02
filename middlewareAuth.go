@@ -23,7 +23,7 @@ func (s *stateConfig) MiddlewareAuth(handler authenicatedHandler) http.HandlerFu
 		}
 	}
 	// get user with authenticated api 
-	user, err := s.DB.GetUserByAPI(r.Context(), apiKey)
+	user, err := s.DB.GetUserByAPIKey(r.Context(), apiKey)
 	if err != nil {
 		log.Printf("Handle err: %v", err)
 		respondWithError(w, http.StatusNotFound, "Sorry, no user data.")
@@ -32,4 +32,3 @@ func (s *stateConfig) MiddlewareAuth(handler authenicatedHandler) http.HandlerFu
 	handler(w, r, user)
 	}
 }
-

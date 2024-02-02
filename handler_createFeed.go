@@ -38,12 +38,32 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		Url: userReq.URL,
 	})
 
+	feedFollow, err := s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+		ID: uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+	})
+	if err != nil {
+		log.Printf("ERR during feedFollow creation: %v\n", err)
+		respondWithError(w, http.StatusInternalServerError, "Cannot create a followed feed")
+		return
+	}
+
+
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError,"Internal err")
 		log.Printf("ERR: %v\n",err)
 		return
 	}
 	log.Printf("Succesful creation of feed %v\n", feed)
-	respondWithJSON(w, http.StatusOK, feed)
+	respondWithJSON(w, http.StatusOK, struct{
+		Feed database.Feed
+		FeedFollow database.FeedFollow}{
+			Feed: feed,
+			FeedFollow: feedFollow,
+		},
+	)
 	return
 }

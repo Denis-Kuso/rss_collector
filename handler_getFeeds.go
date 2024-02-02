@@ -9,7 +9,7 @@ import (
 
 func (s *stateConfig) GetFeeds(w http.ResponseWriter, r * http.Request) {
 
-	feeds, err := s.DB.GetAllFeeds(r.Context())
+	feeds, err := s.DB.GetFeeds(r.Context())
 	if err != nil {
 		// TODO create more error granularity (not found vs internal error)
 		log.Printf(" [ ERR ] - GET ALL FEEDS:%v\n", err)

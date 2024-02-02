@@ -14,15 +14,18 @@ func (s *stateConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request, user 
 	feedFollowID, err := uuid.Parse(providedFeedFollowID)
 	if err != nil{
 		log.Printf("ERR during Feed-Follow id converstion to UUID: %v\n", err)
-		respondWithJSON(w, http.StatusInternalServerError,"Cannot proces feed id")
+		respondWithError(w, http.StatusInternalServerError,"Cannot proces feed id")
 		return
 	}
-	_, err = s.DB.RemoveFeedFollow(r.Context(), feedFollowID)
+	err = s.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
+		ID: feedFollowID,
+		UserID: user.ID,
+	})
 	if err != nil {
 		log.Printf("ERR during removal of Feed-followd from db: %v\n", err)
-		respondWithJSON(w, http.StatusInternalServerError, "cannot remove link to feed")
+		respondWithError(w, http.StatusInternalServerError, "cannot remove link to feed")
 		return
 	}
-	respondWithJSON(w, http.StatusOK,"")
+	respondWithJSON(w, http.StatusOK,"Unfollowed feed")
 	return
 }

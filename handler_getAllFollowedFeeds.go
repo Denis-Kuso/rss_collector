@@ -8,7 +8,7 @@ import (
 
 func (s *stateConfig) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user database.User) {
 
-	feedFollows, err := s.DB.GetAllFeedFollows(r.Context(), user.ID)
+	feedFollows, err := s.DB.GetFeedFollowsForUser(r.Context(), user.ID)
 	if err != nil {
 		log.Printf("ERR during retriveal of all feedFollows: %v\n", err)
 		respondWithError(w, http.StatusInternalServerError,"can't retrieve feedfollows")
