@@ -13,6 +13,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
 	"database/sql"
+	"fmt"
 )
 
 type stateConfig struct {
@@ -78,6 +79,16 @@ func main() {
 	}
 
 	log.Printf("Serving on port: %s\n", port)
+	rss, err := URLtoFeed(LANES_BLOG)
+	if err != nil {
+		log.Printf("ERR rss to feed: %v\n", err)
+	}
+	
+	//log.Printf("%v\n",rss)
+	for _, item := range rss.Feed1.Feeds{
+		fmt.Println("----------------------")
+		fmt.Printf("%v: %v\n",item.Title, item.Id)
+	}
 	server.ListenAndServe()
 }
 
