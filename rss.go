@@ -13,7 +13,13 @@ const (
 	BOOTDEV_BLOG = "https://blog.boot.dev/index.xml"
 	LESSWRONG_BLOG = "https://www.lesswrong.com/feed.xml?view=curated-rss"
 	BURRITOS = "https://sideofburritos.com/blog/atom.xml"
+	NEW_NEWS_WIRE = "https://netnewswire.blog/feed.xml"
+	HARDCORE_HISTORY = "https://feeds.feedburner.com/dancarlin/history"
+	AI_UNRAVELED = "https://media.rss.com/djamgatech/feed.xml"
+	LEX_FRIDMAN = "https://podcastaddict.com/podcast/lex-fridman-podcast/3041340#"
+	XKCD = "https://xkcd.com/rss.xml"
 )
+
 
 
 // Problem - there seem to be at least two "formats" for blogs
