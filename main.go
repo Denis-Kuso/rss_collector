@@ -1,19 +1,20 @@
 package main
 
-
 import (
-	_ "github.com/lib/pq" // importing for side effects
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/cors"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
-	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
-	"database/sql"
-//	"fmt"
+	_ "github.com/lib/pq" // importing for side effects
+	"github.com/rs/cors"
+	// "fmt"
 )
 
 type stateConfig struct {
@@ -67,6 +68,7 @@ func main() {
 		respondWithError(w, http.StatusInternalServerError, "Internal server error")
 		})
 
+	go worker(dbQueries, 10* time.Second, 3)
 	apiRouter.Post(users, state.CreateUser)
 	apiRouter.Get(users, state.MiddlewareAuth(state.GetUserData))
 	apiRouter.Post(feeds, state.MiddlewareAuth(state.CreateFeed))

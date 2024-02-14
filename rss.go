@@ -18,6 +18,7 @@ const (
 	AI_UNRAVELED = "https://media.rss.com/djamgatech/feed.xml"
 	LEX_FRIDMAN = "https://podcastaddict.com/podcast/lex-fridman-podcast/3041340#"
 	XKCD = "https://xkcd.com/rss.xml"
+	BEST_PRACTICES = "https://www.bestpractices.dev/en/feed"
 )
 
 
@@ -96,7 +97,7 @@ func URLtoFeed(url string) (RSSfeed1, error){
 	}
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatalf("Failed response: %v\n", err)
+		log.Printf("Failed response: %v\n", err)
 		return RSSfeed1{}, err
 	}
 	defer res.Body.Close()
