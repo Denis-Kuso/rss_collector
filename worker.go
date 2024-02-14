@@ -2,13 +2,19 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"strings"
 	"log"
 	"sync"
 	"time"
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
+	"github.com/google/uuid"
 )
 
-const FEEDS_TO_FETCH = 3;
+const (
+	FEEDS_TO_FETCH = 3;
+	POST_ALREADY_PRESENT = "duplicate key"
+)
 // Periodically:
 // fetch from DB feeds that need fetching (already have function)
 // fetch feeds from their URLS (concurently)
@@ -49,7 +55,45 @@ func processFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 		return
 	}
 	for _, item := range feedData.Feed1.Feeds {
-		log.Printf("Found post: %v\n", item.Title)
+		description := sql.NullString{}
+		if item.Description != ""{
+			description.String = item.Description
+			description.Valid = true
+		}
+		
+		pubAt, err := parsePubTime(item.PublishedAt);
+		if err != nil {
+			log.Printf("ERR: %v. Cannot parse pub time\n", err)
+			// continue
+		}
+		// DO I WANT TO LOG THE POST THAT WAS CREATED?
+		_, err = db.CreatePost(context.Background(), database.CreatePostParams{
+			ID: uuid.New(),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+			Title: feed.Name,
+			Url: feed.Url,
+			Description: description,
+			PublishedAt: pubAt,
+			FeedID: feed.ID,
+			})
+		if err != nil {
+			// ignore error if post already present
+			if strings.Contains(err.Error(), POST_ALREADY_PRESENT){
+				continue
+			}
+			log.Printf("ERR: %v. Could not create post.\n", err)
+		}
+		//log.Printf("Found post: %v\n", item.Title)
 	}
 	log.Printf("Feed %s gathered, found %v posts\n", feed.Name, len(feedData.Feed1.Feeds))
+}
+
+func parsePubTime(pubAtTime string) (time.Time, error){
+	// TODO handle multiple different formats
+	t, err := time.Parse(time.RFC3339,pubAtTime)
+	if err != nil{
+		return time.Time{}, err
+	}
+	return t,nil
 }

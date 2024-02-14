@@ -52,6 +52,7 @@ type RSSEntry struct {
 		Title string `xml:"title"`
 		PublishedAt string `xml:"published"`
 		UpdatedAt string `xml:"updated"`
+		Description string `xml:"description"`
 		Id string `xml:"id"`
 		Link string `xml:"link"`
 		Content struct {
