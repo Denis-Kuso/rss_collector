@@ -19,110 +19,125 @@ const (
 	LEX_FRIDMAN = "https://podcastaddict.com/podcast/lex-fridman-podcast/3041340#"
 	XKCD = "https://xkcd.com/rss.xml"
 	BEST_PRACTICES = "https://www.bestpractices.dev/en/feed"
+	PRIVACY_GUDIES = "https://blog.privacyguides.org/rss/"
 )
 
-
-
-// Problem - there seem to be at least two "formats" for blogs
-// Define more types or have xml on null conditon within your struct
-// definition
-// but then I cannot acces feeds, because I am referenceing field feed 
-// or if it is empty I need to reference feed1
-// I could write a method that checks which one is empty and return the
-// non empty one
-type RSSfeed1 struct {
+// version 3
+type TempFeed struct {
 	Title   string   `xml:"title"`
-	ID    string `xml:"id"`
+	Link    string `xml:"link"`
 	Feeds []RSSEntry `xml:"entry,omitempty"`
-//	Feed struct {
-//		Title string `xml:"title"`
-//		Id string `xml:"id"`
-//		Feeds []RSSEntry `xml:"entry"`
-//	} `xml:"feed,omitempty"`
-	Feed1 struct {
+	VersionChannel struct {
 		Title string `xml:"title"`
-		Id string `xml:"id"`
+		Link string `xml:"link"`
 		Feeds []RSSEntry `xml:"item"`
 	} `xml:"channel,omitempty"`
 }
 
-// Structure for inidvidual items (articles) on a blog
-// content string
+
+// inidvidual items 
 type RSSEntry struct {
 		Title string `xml:"title"`
 		PublishedAt string `xml:"published"`
-		UpdatedAt string `xml:"updated"`
+		PubDate string `xml:"pubDate"`
 		Description string `xml:"description"`
-		Id string `xml:"id"`
 		Link string `xml:"link"`
-		Content struct {
-			Text string `xml:"chardata"`
-			Type string `xml:"type"`
-		} `xml:"content,omiteempty"`
+		Id string `xml:"id"`
 }
 
-//func (r *RSSfeed1) isAlternateFormat() bool {
-//	if len(r.Feed.Feeds) > 0 {
-//		return true
-//	}else
-//	{return false
-//	}
-//}
 
-//type RSSfeed struct {
-//	Feed struct {
-//		Title string `json:"title"`
-//		Link string `json:"link"`
-//		Items []RSSItem `xml:"item"`
-//	} `xml:"channel"`
-//}
-//
-//type RSSItem struct {
-//	Title string `xml:"title"`
-//	Link string `xml:"link"`
-//	PublishedAt string `xml:"published"`
-//	UpdatedAt string `xml:"updated"`
-//	Content string `xml:"description"`
-//}
+func (rss *RSSEntry) getPubTime()(string){
+	if len(rss.PublishedAt) > len(rss.PubDate){
+		return rss.PublishedAt
+	}else { return rss.PubDate}
+}
 
 
-// returns feed given a valid xml url
-// reconsider what this functions returns - perhaps call
-// a helper function that depending on which RSS structure was unmarshaled
-// return the proper go structure
-func URLtoFeed(url string) (RSSfeed1, error){
-	// make request
+func (rss *RSSEntry) getLink()(string){
+	if rss.Link == ""{
+		return rss.Id
+	}else{return rss.Link}
+}
+// discriminates between different versions of nametags (e.g. id vs link),
+// chooses non-emtpy one, populates Feed.
+func (rss *TempFeed) pruneFeeds()(Feed){
+	// will there always be nonzero long list of entries in only one of them?
+	var tempFeeds []RSSEntry
+	var feed Feed
+	if len(rss.VersionChannel.Feeds) > len(rss.Feeds) {
+		tempFeeds = rss.VersionChannel.Feeds
+		feed.Title = rss.VersionChannel.Title
+		feed.Link = rss.VersionChannel.Link
+	}else {
+		tempFeeds = rss.Feeds
+		feed.Title = rss.Title 
+		feed.Link = rss.Link 
+	}
+	// process items
+	var tempItems []RSSitem
+	for _, feed := range tempFeeds{
+		pubAt := feed.getPubTime()
+		link := feed.getLink()
+		tempItems = append(tempItems, RSSitem{
+						Title: feed.Title,
+						Description: feed.Description,
+						Link: link,
+						PublishedAt: pubAt,
+		})
+	}
+	feed.Items = tempItems
+	return feed
+}
+
+func fetchFeed(url string) ([]byte, error){
+
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return RSSfeed1{}, err
+		log.Printf("ERR:%v. failed request!\n",err)
+		return nil, err
 	}
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Printf("Failed response: %v\n", err)
-		return RSSfeed1{}, err
+		log.Printf("Failed request: %v\n", err)
+		return nil, err
 	}
 	defer res.Body.Close()
 	resp, err := io.ReadAll(res.Body)
 	log.Printf("Successfull response from %v, parsing response...\n", url)
-	rss := RSSfeed1{}
+	return resp, nil
+}
+
+// returns feed given a valid url
+func URLtoFeed(url string) (Feed, error){
+	// make request
+	resp, err := fetchFeed(url)
+	if err != nil{
+		log.Printf("ERR during fetching URL: %v\n", err)
+		return Feed{}, nil
+	}
+	rss := TempFeed{}
 	err = xml.Unmarshal(resp, &rss)
 	if err != nil {
 		log.Fatalf("ERR during unmarshaling: %v\n", err)
-		return RSSfeed1{}, err
+		return Feed{}, err
 	}
-	return rss, nil
+	feeds := rss.pruneFeeds()
+	return feeds, nil
 }
 
-// 
+
+// Feed representing a RSS feed
 type Feed struct {
-	Title   string   `xml:"title"`
-	ID    string `xml:"id"`
-	Entry []struct {
-		Text      string `xml:",chardata"`
-		Title     string `xml:"title"`
-		ID      string `xml:"id"`
-		Content struct {
-			Text string `xml:",chardata"`
-		} `xml:"content"`
-	} `xml:"entry"`
+	Title   string
+	Description string 
+	Link    string 
+	Items []RSSitem
 } 
+
+// item provided by a RSS feed
+type RSSitem struct {
+	Title string
+	Description string
+	Link string
+	PublishedAt string
+}

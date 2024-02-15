@@ -54,7 +54,7 @@ func processFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 		log.Printf("ERR: %v. Couldn't gather feed %s\n", err, feed.Name)
 		return
 	}
-	for _, item := range feedData.Feed1.Feeds {
+	for _, item := range feedData.Items {
 		description := sql.NullString{}
 		if item.Description != ""{
 			description.String = item.Description
@@ -86,7 +86,7 @@ func processFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 		}
 		//log.Printf("Found post: %v\n", item.Title)
 	}
-	log.Printf("Feed %s gathered, found %v posts\n", feed.Name, len(feedData.Feed1.Feeds))
+	log.Printf("Scraped feed: %s, found: %d posts.\n", feed.Name, len(feedData.Items))
 }
 
 func parsePubTime(pubAtTime string) (time.Time, error){

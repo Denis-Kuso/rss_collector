@@ -6,15 +6,13 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
-
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // importing for side effects
 	"github.com/rs/cors"
-	// "fmt"
+	 "time"
 )
 
 type stateConfig struct {
@@ -85,11 +83,11 @@ func main() {
 //	if err != nil {
 //		log.Printf("ERR rss to feed: %v\n", err)
 //	}
-//	
-//	//log.Printf("%v\n",rss)
-//	for _, item := range rss.Feed1.Feeds{
+////	
+////	//log.Printf("%v\n",rss)
+//	for _, item := range rss.Items{
 //		fmt.Println("----------------------")
-//		fmt.Printf("%v: %v\n",item.Title, item.Id)
+//		fmt.Printf("%v: %v\n",item.Title, item.Link)
 //	}
 	server.ListenAndServe()
 }
