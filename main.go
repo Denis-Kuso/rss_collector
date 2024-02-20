@@ -47,6 +47,7 @@ func main() {
 	users := "/users"
 	feeds := "/feeds"
 	follow_feeds := "/feed_follows"
+	posts := "/posts"
 	r := chi.NewRouter()
 	apiRouter := chi.NewRouter()
 
@@ -73,6 +74,7 @@ func main() {
 	apiRouter.Post(follow_feeds, state.MiddlewareAuth(state.FollowFeed))
 	apiRouter.Delete(follow_feeds +"/{"+QUERY_FEED_FOLLOW +"}", state.MiddlewareAuth(state.UnfollowFeed))
 	apiRouter.Get(follow_feeds, state.MiddlewareAuth(state.GetAllFollowedFeeds))
+	apiRouter.Get(posts, state.MiddlewareAuth(state.GetPostsFromUser))
 	server := &http.Server{
 		Addr: ":" + port,
 		Handler: r,
