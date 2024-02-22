@@ -17,6 +17,15 @@ func (s *stateConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request, user 
 		respondWithError(w, http.StatusInternalServerError,"Cannot proces feed id")
 		return
 	}
+	// Does feed_follow even exist?
+	_, err = s.DB.GetFeedFollow(r.Context(), feedFollowID)
+	if err != nil {
+		log.Printf("%v. FeedFollow does not exists, cannot delete feedFollow :%v.\n",err, providedFeedFollowID)
+		respondWithError(w, http.StatusBadRequest,"No feed follow for this user and feed\n")
+		return
+	}
+	
+	// err would be nil on non-existing entry
 	err = s.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
 		ID: feedFollowID,
 		UserID: user.ID,
