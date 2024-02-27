@@ -1,9 +1,11 @@
 package cmd
 
 import (
-  "errors"
-  "net/http"
-  "time"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
 )
 
 var (
@@ -21,4 +23,19 @@ func newClient() *http.Client {
     Timeout: TIMEOUT * time.Second,
   }
   return c
+}
+
+func fetchEndpoint(c *http.Client, endpoint string) ([]byte, error) {
+
+    req, err := http.NewRequest("GET", endpoint, nil)
+    if err != nil {
+        return nil, fmt.Errorf("%w: %s\n", ErrConnection, err)
+    }
+    resp, err := c.Do(req)
+    if err != nil {
+        return nil, ErrConnection
+    }
+    defer resp.Body.Close()
+    data, err := io.ReadAll(resp.Body)
+    return data, err
 }
