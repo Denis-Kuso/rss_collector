@@ -8,28 +8,27 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/Denis-Kuso/cli_rss/pkg/fetch"
 )
 
+var username string;
 // createUserCmd represents the createUser command
 var createUserCmd = &cobra.Command{
-	Use:   "createUser --username <username>",
+	Use:   "createUser <username>",
 	Short: "Creates a new user.",
-	Long: `MUCH longer description`,
+	Long: `Succesful creations returns a key, which is used
+	for automatic login.`,
+	Args: cobra.ExactArgs(1), //ARGS AND FLAGS ARE NOT THE SAME THING
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("createUser called")
+		fmt.Println("createUser called with:", args)
+		fetch.CreateUser(username)
 	},
 }
 
 func init() {
+//	createUserCmd.Flags().StringVarP(&username, "username", "u", "", "username (required)")
+//	if err := createUserCmd.MarkFlagRequired("username"); err != nil {
+//		fmt.Printf("ERR: %v\n", err)
+//	}
 	rootCmd.AddCommand(createUserCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// createUserCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// createUserCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
