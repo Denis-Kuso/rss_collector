@@ -1,17 +1,17 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"github.com/Denis-Kuso/cli_rss/pkg/fetch"
+	"github.com/spf13/cobra"
 )
 
-var username string;
+var username string
+
 // createUserCmd represents the createUser command
 var createUserCmd = &cobra.Command{
 	Use:   "createUser <username>",
@@ -29,14 +29,14 @@ func init() {
 	rootCmd.AddCommand(createUserCmd)
 }
 func CreateUser(username string) (apiKey string, err error) {
-// request to server at createUser 
-    ENDPOINT := "/users"
-    data, err := fetchEndpoint(c, URL + ENDPOINT)
-    if err != nil {
-        fmt.Printf("ERR: %v\n", err)
-	return "", err
-    }
-    // save api key/display apiKey 
-    fmt.Printf("Got data: %v\n", string(data))
-    return apiKey, nil
+	// request to server at createUser
+	ENDPOINT := "/users"
+	data, err := fetchEndpoint(c, ROOT_URL+ENDPOINT)
+	if err != nil {
+		fmt.Printf("ERR: %v\n", err)
+		return "", err
+	}
+	// save api key/display apiKey
+	fmt.Printf("Got data: %v\n", string(data))
+	return apiKey, nil
 }

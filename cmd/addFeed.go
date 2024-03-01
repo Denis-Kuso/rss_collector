@@ -25,7 +25,8 @@ var addFeedCmd = &cobra.Command{
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("addFeed called")
-		return addFeedAction(os.Stdout, args)
+		rooturl := "NON-existing-url"
+		return addFeedAction(os.Stdout, args, rooturl)
 	},
 }
 
@@ -33,10 +34,9 @@ func init() {
 	rootCmd.AddCommand(addFeedCmd)
 }
 
-// TODO no handling of returned data from successful response
-func addFeedAction(out io.Writer, args []string) error {
+func addFeedAction(out io.Writer, args []string, rooturl string) error {
 	name, feed := args[0], args[1]
-	resp, err := addFeed(name, feed)
+	resp, err := addFeed(name, feed, rooturl)
 	if err != nil {
 		return err
 	}
@@ -45,13 +45,13 @@ func addFeedAction(out io.Writer, args []string) error {
 
 // custom printing
 func displayAddFeed(out io.Writer, feed []byte) error {
-	_, err := fmt.Fprintf(out, " Added feed: %s.\n", string(feed))
+	_, err := fmt.Fprint(out, string(feed))
 	return err
 }
 
-func addFeed(name, feed string) ([]byte, error) {
+func addFeed(name, feed, url string) ([]byte, error) {
 	ENDPOINT := "/feeds"
-	url := ROOT_URL + ENDPOINT
+	url += ENDPOINT
 	// validate arg given
 	cleanFeed := validateArg(feed)
 	// TODO stopping point here if feed is invalid

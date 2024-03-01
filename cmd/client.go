@@ -52,7 +52,7 @@ func sendReq(url, method, contentType string, expStatus int, body io.Reader) ([]
 		req.Header.Set("Content-Type", contentType)
 	}
 	// set header
-	req.Header.Add("Authorization: apikey", "ApiKeyFromUser") //TODO HOW IS APIKEY provided?
+	req.Header.Add("Authorization", "apikey") //TODO HOW IS APIKEY provided?
 	r, err := newClient().Do(req)
 	if err != nil {
 		return nil, err

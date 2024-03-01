@@ -10,22 +10,19 @@ var testResp = map[string]struct {
 	Status int
 	Body   string
 }{
-		"Create User: resultsMany": {
+	"Create User: resultsMany": {
 		Status: http.StatusOK,
 		Body: `{
-  "results": 
-    {
-      "ID": "Task 1",
-      "CreatedAt": false,
+      "ID": "001",
+			"CreatedAt": "testTime",
       "UpdatedAt": "2019-10-28T08:23:38.310097076-04:00",
-      "Name": "0001-01-01T00:00:00Z"
-	}
+      "Name": "TestName",
+			"ApiKey":"414141414141"
+	}`},
 
-}`},
-
-	"New feed: valid req":{
+	"New feed: valid req": {
 		Status: http.StatusOK,
-			Body: `{
+		Body: `{
 			"feed": {"id":"1", "CreatedAt":"someTime",
 					"updatedAt":"someTime",
 					"name":"testName",
@@ -38,10 +35,10 @@ var testResp = map[string]struct {
 					"UserID":"testID",
 					"FeedID": "testID"}	
 }`},
-	"Get - feeds: exists": {
+	"Get feeds": {
 		Status: http.StatusOK,
-		Body: `{
-	"results":{
+		Body: `[
+	":{
 	"ID": "some_id",
 	"CreatedAt": "some_time",
 	"UpdatedAt": "Sine_time",
@@ -50,7 +47,7 @@ var testResp = map[string]struct {
 	"UserID": "someid",
 	"LastFetchedAt": "someTime"
 	}`},
-	
+
 	"Get - feeds: not found": {
 		Status: http.StatusNotFound,
 		Body: `{
@@ -58,7 +55,7 @@ var testResp = map[string]struct {
 
 	"root": {
 		Status: http.StatusOK,
-		Body:   "There's an API here",
+		Body:   "welcome Gandalf",
 	},
 
 	"notFound": {
