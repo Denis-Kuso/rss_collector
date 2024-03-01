@@ -26,9 +26,17 @@ var createUserCmd = &cobra.Command{
 }
 
 func init() {
-//	createUserCmd.Flags().StringVarP(&username, "username", "u", "", "username (required)")
-//	if err := createUserCmd.MarkFlagRequired("username"); err != nil {
-//		fmt.Printf("ERR: %v\n", err)
-//	}
 	rootCmd.AddCommand(createUserCmd)
+}
+func CreateUser(username string) (apiKey string, err error) {
+// request to server at createUser 
+    ENDPOINT := "/users"
+    data, err := fetchEndpoint(c, URL + ENDPOINT)
+    if err != nil {
+        fmt.Printf("ERR: %v\n", err)
+	return "", err
+    }
+    // save api key/display apiKey 
+    fmt.Printf("Got data: %v\n", string(data))
+    return apiKey, nil
 }

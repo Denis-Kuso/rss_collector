@@ -16,6 +16,7 @@ var (
 
 const (
   TIMEOUT = 3
+  URL = "http://www.localhost:8080"//TODO: change
 )
 
 func newClient() *http.Client {
@@ -24,6 +25,7 @@ func newClient() *http.Client {
   }
   return c
 }
+var c *http.Client = newClient()
 
 func fetchEndpoint(c *http.Client, endpoint string) ([]byte, error) {
 
