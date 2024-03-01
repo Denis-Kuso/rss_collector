@@ -43,10 +43,10 @@ func fetchEndpoint(c *http.Client, endpoint string) ([]byte, error) {
 	return data, err
 }
 
-func sendReq(url, method, contentType string, expStatus int, body io.Reader) error {
+func sendReq(url, method, contentType string, expStatus int, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
@@ -55,19 +55,20 @@ func sendReq(url, method, contentType string, expStatus int, body io.Reader) err
 	req.Header.Add("Authorization: apikey", "ApiKeyFromUser") //TODO HOW IS APIKEY provided?
 	r, err := newClient().Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer r.Body.Close()
+	msg, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot read body: %w\n",err)
+	}
 	if r.StatusCode != expStatus {
-		msg, err := io.ReadAll(r.Body)
-		if err != nil {
-			return fmt.Errorf("Cannot read body: %w", err)
-		}
 		err = ErrInvalidResponse
 		if r.StatusCode == http.StatusNotFound {
 			err = ErrNotFound
 		}
-		return fmt.Errorf("%w: %s", err, msg)
+		return nil, fmt.Errorf("%w: %s", err, msg)
 	}
-	return nil
+	
+	return msg, nil
 }

@@ -32,23 +32,23 @@ var addFeedCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(addFeedCmd)
 }
-
+// TODO no handling of returned data from successful response
 func addFeedAction(out io.Writer, args []string) error {
 	name, feed := args[0], args[1]
-	err := addFeed(name, feed)
+	resp, err := addFeed(name, feed)
 	if err != nil {
 		return err
 	}
-	return displayAddFeed(out, feed)
+	return displayAddFeed(out, resp)
 }
 
 // custom printing
-func displayAddFeed(out io.Writer, feed string) error {
-	_, err := fmt.Fprintf(out, " Feed: %s added.\n", feed)
+func displayAddFeed(out io.Writer, feed []byte) error {
+	_, err := fmt.Fprintf(out, " Added feed: %s.\n", string(feed))
 	return err
 }
 
-func addFeed(name, feed string) error {
+func addFeed(name, feed string) ([]byte, error) {
 	ENDPOINT := "/feeds"
 	url := ROOT_URL + ENDPOINT
 	// validate arg given
@@ -64,15 +64,16 @@ func addFeed(name, feed string) error {
 
 	var body bytes.Buffer
 	if err := json.NewEncoder(&body).Encode(feedex); err != nil {
-		return err
+		return nil, err
 	}
-	err := sendReq(url, http.MethodPost, "application/json", http.StatusOK, &body)
+	resp, err := sendReq(url, http.MethodPost, "application/json", http.StatusOK, &body)
 	if err != nil {
+		// TODO add more error granularity
 		fmt.Printf("ERR: %v\n", err)
 		os.Exit(1)
 	}
 	fmt.Printf("Successfuly added feed: %s\n", feed)
-	return nil
+	return resp, nil
 }
 
 // TODO

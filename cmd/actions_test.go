@@ -9,6 +9,60 @@ import (
   "testing"
 )
 
+func TestAddFeed(t *testing.T) {
+  testCases := []struct{
+    name string
+    expError error
+    expOut string
+    feedName string
+    feedURL string
+    resp struct{
+      Status int 
+      Body string
+    }
+    closeServer bool
+  }{
+    {name : "add valid feed",
+    expError: nil,
+    expOut: `{
+			"feed": {"id":"1", "CreatedAt":"someTime",
+					"updatedAt":"someTime",
+					"name":"testName",
+					"url":"testingURL",
+					"userID":"testID",
+					"LastFetchedAt":"someTime"},
+			"feedFollow: {"ID":"testId",
+					"CreatedAt":"testTime",
+					"UpdatedAt":"testTime",
+					"UserID":"testID",
+					"FeedID": "testID"}	
+}`,
+      feedName: "testName",
+      feedURL: "testingURL",
+    resp: testResp["New feed: valid req"],
+  },
+}
+    for _, tc := range testCases {
+      t.Run(tc.name, func(t *testing.T) {
+      // todo validate request
+
+      // test function
+      var out bytes.Buffer
+      if err := addFeedAction(&out,[]string{tc.feedName, tc.feedURL}); err != nil {
+        if tc.expError == nil {
+          t.Fatalf("Expected no error, got %q.\n", err)
+        }
+        if tc.expError != err {
+          t.Errorf("Expected: %v, got %v\n", tc.expError, err)
+        }
+      }
+      if tc.expOut != out.String() {
+        t.Errorf("Expected: %q, got %q\n",tc.expOut, out.String())
+      }
+})
+}
+}
+
 func TestGetFeeds(t *testing.T) {
   testCases := []struct {
     name     string
