@@ -32,6 +32,7 @@ var addFeedCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(addFeedCmd)
 }
+
 // TODO no handling of returned data from successful response
 func addFeedAction(out io.Writer, args []string) error {
 	name, feed := args[0], args[1]
