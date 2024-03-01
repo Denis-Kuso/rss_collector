@@ -22,6 +22,22 @@ var testResp = map[string]struct {
 	}
 
 }`},
+
+	"New feed: valid req":{
+		Status: http.StatusOK,
+			Body: `{
+			"feed": {"id":"1", "CreatedAt":"someTime",
+					"updatedAt":"someTime",
+					"name":"testName",
+					"url":"testingURL",
+					"userID":"testID",
+					"LastFetchedAt":"someTime"},
+			"feedFollow: {"ID":"testId",
+					"CreatedAt":"testTime",
+					"UpdatedAt":"testTime",
+					"UserID":"testID",
+					"FeedID": "testID"}	
+}`},
 	"Get - feeds: exists": {
 		Status: http.StatusOK,
 		Body: `{
