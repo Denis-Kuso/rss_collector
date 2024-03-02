@@ -24,9 +24,9 @@ var addFeedCmd = &cobra.Command{
 	addFeed blogOnAgi www.agiblog.com`,
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("addFeed called")
-		rooturl := "NON-existing-url"
-		return addFeedAction(os.Stdout, args, rooturl)
+		rooturl := "NON-existing-url" // TODO refactor to .env (perhaps struct)
+		APIKEY := "TESTING-API-KEY"// TODO refactor to .env
+		return addFeedAction(os.Stdout, args, rooturl, APIKEY)
 	},
 }
 
@@ -34,9 +34,9 @@ func init() {
 	rootCmd.AddCommand(addFeedCmd)
 }
 
-func addFeedAction(out io.Writer, args []string, rooturl string) error {
+func addFeedAction(out io.Writer, args []string, rooturl, apiKey string) error {
 	name, feed := args[0], args[1]
-	resp, err := addFeed(name, feed, rooturl)
+	resp, err := addFeed(name, feed, rooturl, apiKey)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func displayAddFeed(out io.Writer, feed []byte) error {
 	return err
 }
 
-func addFeed(name, feed, url string) ([]byte, error) {
+func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 	ENDPOINT := "/feeds"
 	url += ENDPOINT
 	// validate arg given
@@ -67,7 +67,7 @@ func addFeed(name, feed, url string) ([]byte, error) {
 	if err := json.NewEncoder(&body).Encode(feedex); err != nil {
 		return nil, err
 	}
-	resp, err := sendReq(url, http.MethodPost, "application/json", http.StatusOK, &body)
+	resp, err := sendReq(url, http.MethodPost, apiKey, "application/json", http.StatusOK, &body)
 	if err != nil {
 		// TODO add more error granularity
 		fmt.Printf("ERR: %v\n", err)

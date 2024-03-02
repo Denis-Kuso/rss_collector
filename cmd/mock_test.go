@@ -51,6 +51,15 @@ var testResp = map[string]struct {
 		Status: http.StatusOK,
 		Body:   "welcome Gandalf",
 	},
+	"unauthorised": {
+		Status: http.StatusUnauthorized,
+		Body: `{"error":"Unauthorized"}`,
+		},
+	
+	"no header": {
+			Status: http.StatusBadRequest,
+			Body: `{"error":"No header included"}`,
+		},
 
 	"notFound": {
 		Status: http.StatusNotFound,

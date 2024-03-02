@@ -44,7 +44,7 @@ func fetchEndpoint(c *http.Client, endpoint string) ([]byte, error) {
 	return data, err
 }
 
-func sendReq(url, method, contentType string, expStatus int, body io.Reader) ([]byte, error) {
+func sendReq(url, method, apiKey, contentType string, expStatus int, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func sendReq(url, method, contentType string, expStatus int, body io.Reader) ([]
 		req.Header.Set("Content-Type", contentType)
 	}
 	// set header
-	req.Header.Add("Authorization", "apikey") //TODO HOW IS APIKEY provided?
+	req.Header.Add("Authorization", apiKey) //TODO will default header allow this?
 	r, err := newClient().Do(req)
 	if err != nil {
 		return nil, err
