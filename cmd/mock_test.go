@@ -10,15 +10,9 @@ var testResp = map[string]struct {
 	Status int
 	Body   string
 }{
-	"Create User: resultsMany": {
+	"Create User: success": {
 		Status: http.StatusOK,
-		Body: `{
-      "ID": "001",
-			"CreatedAt": "testTime",
-      "UpdatedAt": "2019-10-28T08:23:38.310097076-04:00",
-      "Name": "TestName",
-			"ApiKey":"414141414141"
-	}`},
+		Body: `{"ID": "001","CreatedAt":"testTime","UpdatedAt": "2019-10-28T08:23:38.310097076-04:00","Name":"TestName","ApiKey":"414141414141"}`},
 
 	"New feed: valid req": {
 		Status: http.StatusOK,
@@ -67,6 +61,10 @@ var testResp = map[string]struct {
 		Status: http.StatusCreated,
 		Body:   "",
 	},
+	"malformed request": {
+		Status: http.StatusBadRequest,
+		Body: "",
+		},
 	"retrieve posts": {
 		Status: http.StatusOK,
 		Body: `[{

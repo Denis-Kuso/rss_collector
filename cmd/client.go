@@ -12,6 +12,7 @@ var (
 	ErrConnection      = errors.New("Connection error")
 	ErrNotFound        = errors.New("Not found")
 	ErrInvalidResponse = errors.New("Invalid server response")
+	ErrInvalidRequest  = errors.New("Malformed request")
 )
 
 const (

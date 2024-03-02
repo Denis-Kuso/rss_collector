@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/Denis-Kuso/cli_rss/pkg/fetch"
 	"github.com/spf13/cobra"
@@ -27,6 +28,12 @@ var createUserCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(createUserCmd)
+}
+func createUserAction(out io.Writer, base_url, name string) error {
+	_, err := fmt.Fprint(out, "41414141")
+	if err != nil {
+		return err}
+	return nil
 }
 func CreateUser(username string) (apiKey string, err error) {
 	// request to server at createUser
