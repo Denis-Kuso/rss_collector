@@ -16,6 +16,9 @@ import (
 )
 
 var username string
+const (
+	MAX_USERNAME_LENGTH = 35
+)
 
 // createUserCmd represents the createUser command
 var createUserCmd = &cobra.Command{
@@ -83,7 +86,12 @@ func createUser(username, url string) (user []byte, err error) {
 	return resp, nil
 }
 
-// TODO implement
+// Checks the validity of the username provided.
+// Max length of username is 35 characters. White space cannot be used.
 func validateUsername(username string) bool {
+	runeUsername := []rune(username)
+	if len(runeUsername) > MAX_USERNAME_LENGTH {
+		return false
+	}
 	return true
 }
