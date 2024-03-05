@@ -54,7 +54,6 @@ func sendReq(url, method, apiKey, contentType string, expStatus int, body io.Rea
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
 	}
-	fmt.Println("Provided with key:", apiKey)
  	if apiKey != "" {
  		req.Header.Add("Authorization", "ApiKey " + apiKey) //TODO will default header allow this?
  	}

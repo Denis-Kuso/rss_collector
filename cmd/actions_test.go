@@ -5,6 +5,7 @@ import (
 	//"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"net/http"
 	"testing"
@@ -67,7 +68,6 @@ func TestCreateUser(t *testing.T) {
 				})
 			defer cleanup()
 			// tests
-			fmt.Printf("Using temp url: %s\n", url)
 			var out bytes.Buffer
 			err := createUserAction(&out, url, tc.username)
 			if err != nil {
@@ -89,6 +89,7 @@ func TestAddFeed(t *testing.T) {
 	expURLPath := "/feeds"
 	expHTTPMethod := http.MethodPost
 	expContentType := "application/json"
+	expAuthMethod := "ApiKey"                                          // TODO perhaps use const or enum
 	expBody := `{"name":"testName","url":"testingURL"}` + string('\n') //Encoder adds a newline char
 	// TODO check header is present?AUTH...
 	testCases := []struct {
@@ -125,7 +126,7 @@ func TestAddFeed(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// TODO validate request
+			// validate request
 			url, cleanup := mockServer(
 				func(w http.ResponseWriter, r *http.Request) {
 					if r.URL.Path != expURLPath {
@@ -133,6 +134,14 @@ func TestAddFeed(t *testing.T) {
 					}
 					if r.Method != expHTTPMethod {
 						t.Errorf("Poor request! Expected method: %q, got: %q", expHTTPMethod, r.Method)
+					}
+					authValue := r.Header.Get("Authorization")
+					if authValue == "" {
+						t.Fatal("No header provided")
+					}
+					authMethod := strings.Split(authValue, " ")[0]
+					if authMethod != expAuthMethod {
+						t.Fatalf("Incorrect authorization method, expected: %v, got: %v\n", expAuthMethod, authMethod)
 					}
 					body, err := io.ReadAll(r.Body)
 					if err != nil {
