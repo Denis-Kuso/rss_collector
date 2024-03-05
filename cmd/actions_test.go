@@ -86,6 +86,11 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestAddFeed(t *testing.T) {
+	expURLPath := "/feeds"
+	expHTTPMethod := http.MethodPost
+	expContentType := "application/json"
+	expBody := `{"name":"testName","url":"testingURL"}` + string('\n') //Encoder adds a newline char
+	// TODO check header is present?AUTH...
 	testCases := []struct {
 		name     string
 		expError error
@@ -123,6 +128,25 @@ func TestAddFeed(t *testing.T) {
 			// TODO validate request
 			url, cleanup := mockServer(
 				func(w http.ResponseWriter, r *http.Request) {
+					if r.URL.Path != expURLPath {
+						t.Errorf("Poor request! Expected path: %q, got: %q", expURLPath, r.URL.Path)
+					}
+					if r.Method != expHTTPMethod {
+						t.Errorf("Poor request! Expected method: %q, got: %q", expHTTPMethod, r.Method)
+					}
+					body, err := io.ReadAll(r.Body)
+					if err != nil {
+						t.Fatal(err)
+					}
+					r.Body.Close()
+					if string(body) != expBody {
+						t.Errorf("Poor request! Expected body: %q, got: %q", expBody, string(body))
+					}
+					contentType := r.Header.Get("Content-Type")
+					if contentType != expContentType {
+						t.Errorf("Poor request! Expected Content-Type: %q, got: %q", expContentType, contentType)
+					}
+
 					w.WriteHeader(tc.resp.Status)
 					fmt.Fprintln(w, tc.resp.Body)
 				})
