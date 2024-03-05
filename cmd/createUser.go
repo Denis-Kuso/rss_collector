@@ -4,8 +4,12 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
+	"os"
+	"net/http"
 
 	"github.com/Denis-Kuso/cli_rss/pkg/fetch"
 	"github.com/spf13/cobra"
@@ -30,20 +34,56 @@ func init() {
 	rootCmd.AddCommand(createUserCmd)
 }
 func createUserAction(out io.Writer, base_url, name string) error {
-	_, err := fmt.Fprint(out, "41414141")
+	resp, err := createUser(name, base_url)
 	if err != nil {
-		return err}
-	return nil
-}
-func CreateUser(username string) (apiKey string, err error) {
-	// request to server at createUser
-	ENDPOINT := "/users"
-	data, err := fetchEndpoint(c, ROOT_URL+ENDPOINT)
-	if err != nil {
-		fmt.Printf("ERR: %v\n", err)
-		return "", err
+		fmt.Printf("Failed creating user: %s.Err: %v\n", name, err)
+		os.Exit(1)
 	}
-	// save api key/display apiKey
-	fmt.Printf("Got data: %v\n", string(data))
-	return apiKey, nil
+	return displayUser(out, resp)
+}
+
+func displayUser(out io.Writer, body []byte) error {
+	// verbose option
+	_, err := fmt.Fprintf(out, string(body))
+	return err
+}
+func createUserF(username, url string) (resp []byte, err error) {
+	ENDPOINT := "/users"
+	url += ENDPOINT
+	data, err := fetchEndpoint(c, url)
+	if err != nil {
+		return nil, fmt.Errorf("ERR: %v, during fetching with url:%v\n",err, url) 
+	}
+	return data, nil
+}
+
+func createUser(username, url string) (user []byte, err error) {
+	ENDPOINT := "/users"
+	url += ENDPOINT
+
+	if ok := validateUsername(username); !ok{
+		fmt.Println("NOT OK")
+		return nil, ErrInvalidRequest// TODO CHANGE ERR VALUE
+	}
+	name := struct {
+		Username string `json:"name"`
+		}{
+			Username:username}
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(name); err != nil {
+		return nil, err
+	}
+	apiKey := ""
+	resp, err := sendReq(url, http.MethodPost, apiKey, "application/json", http.StatusOK, &body)
+	if err != nil {
+		fmt.Printf("ERR from sendReq: %v\n",err)
+		os.Exit(1)
+	}
+	// TODO Then what?? process response or pass response forward?
+	return resp, nil
+}
+
+// TODO implement
+func validateUsername(username string) bool {
+	return true
 }

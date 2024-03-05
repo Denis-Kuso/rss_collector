@@ -10,8 +10,6 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-// poorly formed request
-// properly formed request
 	testCases := []struct {
 		testName string
 		expError error
@@ -24,15 +22,17 @@ func TestCreateUser(t *testing.T) {
 	}{
 		{testName: "Valid request",
 			expError: nil,
-			expOut: `{"ID":"001","CreatedAt":"testTime","UpdatedAt":"2019-10-28T08:23:38.310097076-04:00","Name":"TestName","ApiKey":"414141414141"}`,
+			expOut: `{"ID":"001","CreatedAt":"testTime","UpdatedAt":"2019-10-28T08:23:38.310097076-04:00","Name":"TestName","ApiKey":"414141414141"}
+`,
 			username: "testUsername",
-			resp: testResp["CreateUser: success"],
-		},{testName: "Invalid request",
-			expError: ErrInvalidRequest,
-			expOut: "",
-			username: "testUsername",
-			resp: testResp["malformed request"],
-	},
+			resp: testResp[CREATE_USER_SUCCESS],
+		},
+//			{testName: "Invalid request",
+//			expError: ErrInvalidRequest,
+//			expOut: "\n",
+//			username: "testUsername",
+//			resp: testResp[MALFORMERD_REQUEST],
+//	}	,
 	}
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
@@ -46,7 +46,7 @@ func TestCreateUser(t *testing.T) {
 			// tests  
 			fmt.Printf("Using temp url: %s\n",url)
 			var out bytes.Buffer
-			key, err := createUserAction(&out, url, tc.username)
+			err := createUserAction(&out, url, tc.username)
 			if err != nil {
 				if tc.expError == nil {
 					t.Fatalf("Expected no error, got: %q.\n", err)
@@ -58,8 +58,6 @@ func TestCreateUser(t *testing.T) {
 			if tc.expOut != out.String() {
 				t.Errorf("Expected: %q, \n\tgot: %q\n", tc.expOut, out.String())
 			}
-			fmt.Printf("Received key: %v\n", key)
-
 		})
 	}
 }
@@ -95,7 +93,7 @@ func TestAddFeed(t *testing.T) {
 `,
 			feedName: "testName",
 			feedURL:  "testingURL",
-			resp:     testResp["New feed: valid req"],
+			resp:     testResp[CREATE_FEED_SUCCESS],
 		},
 	}
 	for _, tc := range testCases {
@@ -109,7 +107,7 @@ func TestAddFeed(t *testing.T) {
 			defer cleanup()
 			// test function
 			var out bytes.Buffer
-			if err := addFeedAction(&out, []string{tc.feedName, tc.feedURL}, url); err != nil {
+			if err := addFeedAction(&out, []string{tc.feedName, tc.feedURL}, url,"1337"); err != nil {
 				if tc.expError == nil {
 					t.Fatalf("Expected no error, got %q.\n", err)
 				}

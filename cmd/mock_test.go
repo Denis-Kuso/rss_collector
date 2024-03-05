@@ -5,16 +5,30 @@ import (
 	"net/http/httptest"
 )
 
+const (
+	CREATE_USER_SUCCESS = iota
+	CREATE_FEED_SUCCESS 
+	GET_FEEDS 
+	GET_FEEDS_NOT_FOUND 
+	MALFORMERD_REQUEST 
+	ROOT
+	UNAUTHORISED
+	NO_HEADER
+	NOT_FOUND
+	ALL_POSTS
+	CREATED
+)
+
 // testResp simulates test reponses from the API
-var testResp = map[string]struct {
+var testResp = map[int]struct {
 	Status int
 	Body   string
 }{
-	"Create User: success": {
+	CREATE_USER_SUCCESS : {
 		Status: http.StatusOK,
-		Body: `{"ID": "001","CreatedAt":"testTime","UpdatedAt": "2019-10-28T08:23:38.310097076-04:00","Name":"TestName","ApiKey":"414141414141"}`},
+		Body: `{"ID":"001","CreatedAt":"testTime","UpdatedAt":"2019-10-28T08:23:38.310097076-04:00","Name":"TestName","ApiKey":"414141414141"}`},
 
-	"New feed: valid req": {
+	CREATE_FEED_SUCCESS: {
 		Status: http.StatusOK,
 		Body: `{
 			"feed": {"id":"1", "CreatedAt":"someTime",
@@ -29,7 +43,7 @@ var testResp = map[string]struct {
 					"UserID":"testID",
 					"FeedID": "testID"}	
 }`},
-	"Get feeds": {
+	GET_FEEDS: {
 		Status: http.StatusOK,
 		Body: `[
 	":{
@@ -42,39 +56,40 @@ var testResp = map[string]struct {
 	"LastFetchedAt": "someTime"
 	}`},
 
-	"Get - feeds: not found": {
+	GET_FEEDS_NOT_FOUND: {
 		Status: http.StatusNotFound,
 		Body: `{
 }`},
 
-	"root": {
+	ROOT: {
 		Status: http.StatusOK,
 		Body:   "welcome Gandalf",
 	},
-	"unauthorised": {
+
+	UNAUTHORISED: {
 		Status: http.StatusUnauthorized,
 		Body: `{"error":"Unauthorized"}`,
 		},
 	
-	"no header": {
+	NO_HEADER: {
 			Status: http.StatusBadRequest,
 			Body: `{"error":"No header included"}`,
 		},
 
-	"notFound": {
+	NOT_FOUND: {
 		Status: http.StatusNotFound,
 		Body:   "404 - not found",
 	},
 
-	"created": {
+	CREATED: {
 		Status: http.StatusCreated,
 		Body:   "",
 	},
-	"malformed request": {
+	MALFORMERD_REQUEST: {
 		Status: http.StatusBadRequest,
 		Body: "",
 		},
-	"retrieve posts": {
+	ALL_POSTS: {
 		Status: http.StatusOK,
 		Body: `[{
 				"ID":"some_id",
