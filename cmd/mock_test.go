@@ -7,10 +7,10 @@ import (
 
 const (
 	CREATE_USER_SUCCESS = iota
-	CREATE_FEED_SUCCESS 
-	GET_FEEDS 
-	GET_FEEDS_NOT_FOUND 
-	MALFORMERD_REQUEST 
+	CREATE_FEED_SUCCESS
+	GET_FEEDS
+	GET_FEEDS_NOT_FOUND
+	MALFORMERD_REQUEST
 	ROOT
 	UNAUTHORISED
 	NO_HEADER
@@ -24,9 +24,9 @@ var testResp = map[int]struct {
 	Status int
 	Body   string
 }{
-	CREATE_USER_SUCCESS : {
+	CREATE_USER_SUCCESS: {
 		Status: http.StatusOK,
-		Body: `{"ID":"001","CreatedAt":"testTime","UpdatedAt":"2019-10-28T08:23:38.310097076-04:00","Name":"TestName","ApiKey":"414141414141"}`},
+		Body:   `{"ID":"001","CreatedAt":"testTime","UpdatedAt":"2019-10-28T08:23:38.310097076-04:00","Name":"TestName","ApiKey":"414141414141"}`},
 
 	CREATE_FEED_SUCCESS: {
 		Status: http.StatusOK,
@@ -68,13 +68,13 @@ var testResp = map[int]struct {
 
 	UNAUTHORISED: {
 		Status: http.StatusUnauthorized,
-		Body: `{"error":"Unauthorized"}`,
-		},
-	
+		Body:   `{"error":"Unauthorized"}`,
+	},
+
 	NO_HEADER: {
-			Status: http.StatusBadRequest,
-			Body: `{"error":"No header included"}`,
-		},
+		Status: http.StatusBadRequest,
+		Body:   `{"error":"No header included"}`,
+	},
 
 	NOT_FOUND: {
 		Status: http.StatusNotFound,
@@ -87,8 +87,8 @@ var testResp = map[int]struct {
 	},
 	MALFORMERD_REQUEST: {
 		Status: http.StatusBadRequest,
-		Body: "",
-		},
+		Body:   "",
+	},
 	ALL_POSTS: {
 		Status: http.StatusOK,
 		Body: `[{

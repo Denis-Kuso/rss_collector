@@ -4,20 +4,25 @@ import (
 	"bytes"
 	//"errors"
 	"fmt"
+	"io"
 
 	"net/http"
 	"testing"
 )
 
 func TestCreateUser(t *testing.T) {
+	expURLPath := "/users" // TODO is this the path?
+	expHTTPMethod := http.MethodPost
+	expContentType := "application/json"
+	expBody := `{"name":"testUsername"}` + string('\n') //Encoder adds a newline char
 	testCases := []struct {
 		testName string
 		expError error
-		expOut string
+		expOut   string
 		username string
-		resp struct {
+		resp     struct {
 			Status int
-			Body string
+			Body   string
 		}
 	}{
 		{testName: "Valid request",
@@ -25,26 +30,44 @@ func TestCreateUser(t *testing.T) {
 			expOut: `{"ID":"001","CreatedAt":"testTime","UpdatedAt":"2019-10-28T08:23:38.310097076-04:00","Name":"TestName","ApiKey":"414141414141"}
 `,
 			username: "testUsername",
-			resp: testResp[CREATE_USER_SUCCESS],
+			resp:     testResp[CREATE_USER_SUCCESS],
 		},
-//			{testName: "Invalid request",
-//			expError: ErrInvalidRequest,
-//			expOut: "\n",
-//			username: "testUsername",
-//			resp: testResp[MALFORMERD_REQUEST],
-//	}	,
+		//			{testName: "Invalid request",
+		//			expError: ErrInvalidRequest,
+		//			expOut: "\n",
+		//			username: "testUsername",
+		//			resp: testResp[MALFORMERD_REQUEST],
+		//	}	,
 	}
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			// todo validate request
+			// validate request well formed
 			url, cleanup := mockServer(
 				func(w http.ResponseWriter, r *http.Request) {
+					if r.URL.Path != expURLPath {
+						t.Errorf("Poor request! Expected path: %q, got: %q", expURLPath, r.URL.Path)
+					}
+					if r.Method != expHTTPMethod {
+						t.Errorf("Poor request! Expected method: %q, got: %q", expHTTPMethod, r.Method)
+					}
+					body, err := io.ReadAll(r.Body)
+					if err != nil {
+						t.Fatal(err)
+					}
+					r.Body.Close()
+					if string(body) != expBody {
+						t.Errorf("Poor request! Expected body: %q, got: %q", expBody, string(body))
+					}
+					contentType := r.Header.Get("Content-Type")
+					if contentType != expContentType {
+						t.Errorf("Poor request! Expected Content-Type: %q, got: %q", expContentType, contentType)
+					}
 					w.WriteHeader(tc.resp.Status)
 					fmt.Fprintln(w, tc.resp.Body)
 				})
 			defer cleanup()
-			// tests  
-			fmt.Printf("Using temp url: %s\n",url)
+			// tests
+			fmt.Printf("Using temp url: %s\n", url)
 			var out bytes.Buffer
 			err := createUserAction(&out, url, tc.username)
 			if err != nil {
@@ -89,8 +112,7 @@ func TestAddFeed(t *testing.T) {
 					"UpdatedAt":"testTime",
 					"UserID":"testID",
 					"FeedID": "testID"}	
-}
-`,
+}` + string('\n'), //Encoder adds a newline char
 			feedName: "testName",
 			feedURL:  "testingURL",
 			resp:     testResp[CREATE_FEED_SUCCESS],
@@ -107,7 +129,7 @@ func TestAddFeed(t *testing.T) {
 			defer cleanup()
 			// test function
 			var out bytes.Buffer
-			if err := addFeedAction(&out, []string{tc.feedName, tc.feedURL}, url,"1337"); err != nil {
+			if err := addFeedAction(&out, []string{tc.feedName, tc.feedURL}, url, "1337"); err != nil {
 				if tc.expError == nil {
 					t.Fatalf("Expected no error, got %q.\n", err)
 				}
