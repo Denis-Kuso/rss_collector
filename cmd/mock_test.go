@@ -10,6 +10,7 @@ const (
 	CREATE_FEED_SUCCESS
 	GET_FEEDS
 	GET_FEEDS_NOT_FOUND
+	FOLLOW_EXISTING_FEED
 	MALFORMERD_REQUEST
 	ROOT
 	UNAUTHORISED
@@ -60,6 +61,10 @@ var testResp = map[int]struct {
 		Status: http.StatusNotFound,
 		Body: `{
 }`},
+	FOLLOW_EXISTING_FEED: {
+		Status: http.StatusOK,
+		Body:   `{"ID":"c52d3a13-2245-4991-8012-8856417b706f","CreatedAt":"2024-02-26T17:47:09.099267Z","UpdatedAt":"2024-02-26T17:47:09.099268Z","UserID":"8f588151-5489-4668-bfff-8c50021c1160","FeedID":"c5c9212c-57a3-4d68-b42e-addd951502c0"}`,
+	},
 
 	ROOT: {
 		Status: http.StatusOK,

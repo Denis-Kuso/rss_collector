@@ -11,8 +11,86 @@ import (
 	"testing"
 )
 
+func TestFollowFeed(t *testing.T) {
+	expURLPath := "/feed_follows"
+	expHTTPMethod := http.MethodPost
+	expAuthMethod := "ApiKey" // TODO perhaps use const or enum
+	// expApiKey := "someFancyApiKey" TODO decide whether to test this and HOW
+	expContentType := "application/json"
+	expBody := `{"feed_id":"c5c9212c-57a3-4d68-b42e-addd951502c0"}` + string('\n') //Encoder adds a newline char
+	testCases := []struct {
+		testName string
+		expError error
+		expOut   string
+		feedID   string
+		resp     struct {
+			Status int
+			Body   string
+		}
+	}{
+		{testName: "Follow existing feed",
+			expError: nil,
+			expOut:   `{"ID":"c52d3a13-2245-4991-8012-8856417b706f","CreatedAt":"2024-02-26T17:47:09.099267Z","UpdatedAt":"2024-02-26T17:47:09.099268Z","UserID":"8f588151-5489-4668-bfff-8c50021c1160","FeedID":"c5c9212c-57a3-4d68-b42e-addd951502c0"}`,
+			feedID:   "c5c9212c-57a3-4d68-b42e-addd951502c0",
+			resp:     testResp[FOLLOW_EXISTING_FEED]},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			// validate request well formed
+			url, cleanup := mockServer(
+				func(w http.ResponseWriter, r *http.Request) {
+					if r.URL.Path != expURLPath {
+						t.Errorf("Poor request! Expected path: %q, got: %q", expURLPath, r.URL.Path)
+					}
+					if r.Method != expHTTPMethod {
+						t.Errorf("Poor request! Expected method: %q, got: %q", expHTTPMethod, r.Method)
+					}
+					authValue := r.Header.Get("Authorization")
+					if authValue == "" {
+						t.Fatal("No header provided")
+					}
+					authMethod := strings.Split(authValue, " ")[0]
+					if authMethod != expAuthMethod {
+						t.Fatalf("Incorrect authorization method, expected: %v, got: %v\n", expAuthMethod, authMethod)
+					}
+
+					body, err := io.ReadAll(r.Body)
+					if err != nil {
+						t.Fatal(err)
+					}
+					r.Body.Close()
+					if string(body) != expBody {
+						t.Errorf("Poor request! Expected body: %q, got: %q", expBody, string(body))
+					}
+					contentType := r.Header.Get("Content-Type")
+					if contentType != expContentType {
+						t.Errorf("Poor request! Expected Content-Type: %q, got: %q", expContentType, contentType)
+					}
+					w.WriteHeader(tc.resp.Status)
+					fmt.Fprintln(w, tc.resp.Body)
+				})
+			defer cleanup()
+			var out bytes.Buffer
+			err := followFeedAction(&out, url, tc.feedID)
+			if err != nil {
+				if tc.expError == nil {
+					t.Fatalf("Expected no error, got: %q.\n", err)
+				}
+				if tc.expError != err {
+					t.Errorf("Expected err: %v, got: %v\n", tc.expError, err)
+				}
+			}
+			if tc.expOut != out.String() {
+				t.Errorf("Expected: %q, \n\tgot: %q\n", tc.expOut, out.String())
+			}
+
+		})
+	}
+}
+
 func TestCreateUser(t *testing.T) {
-	expURLPath := "/users" // TODO is this the path?
+	expURLPath := "/users"
 	expHTTPMethod := http.MethodPost
 	expContentType := "application/json"
 	expBody := `{"name":"testUsername"}` + string('\n') //Encoder adds a newline char
