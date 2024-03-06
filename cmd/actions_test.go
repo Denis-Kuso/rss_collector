@@ -14,8 +14,8 @@ import (
 func TestFollowFeed(t *testing.T) {
 	expURLPath := "/feed_follows"
 	expHTTPMethod := http.MethodPost
-	expAuthMethod := "ApiKey" // TODO perhaps use const or enum
-	// expApiKey := "someFancyApiKey" TODO decide whether to test this and HOW
+	expAuthMethod := "ApiKey"     // TODO perhaps use const or enum
+	ApiKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
 	expContentType := "application/json"
 	expBody := `{"feed_id":"c5c9212c-57a3-4d68-b42e-addd951502c0"}` + string('\n') //Encoder adds a newline char
 	testCases := []struct {
@@ -30,7 +30,7 @@ func TestFollowFeed(t *testing.T) {
 	}{
 		{testName: "Follow existing feed",
 			expError: nil,
-			expOut:   `{"ID":"c52d3a13-2245-4991-8012-8856417b706f","CreatedAt":"2024-02-26T17:47:09.099267Z","UpdatedAt":"2024-02-26T17:47:09.099268Z","UserID":"8f588151-5489-4668-bfff-8c50021c1160","FeedID":"c5c9212c-57a3-4d68-b42e-addd951502c0"}`,
+			expOut:   `{"ID":"c52d3a13-2245-4991-8012-8856417b706f","CreatedAt":"2024-02-26T17:47:09.099267Z","UpdatedAt":"2024-02-26T17:47:09.099268Z","UserID":"8f588151-5489-4668-bfff-8c50021c1160","FeedID":"c5c9212c-57a3-4d68-b42e-addd951502c0"}` + string('\n'),
 			feedID:   "c5c9212c-57a3-4d68-b42e-addd951502c0",
 			resp:     testResp[FOLLOW_EXISTING_FEED]},
 	}
@@ -72,7 +72,7 @@ func TestFollowFeed(t *testing.T) {
 				})
 			defer cleanup()
 			var out bytes.Buffer
-			err := followFeedAction(&out, url, tc.feedID)
+			err := followFeedAction(&out, tc.feedID, url, ApiKey)
 			if err != nil {
 				if tc.expError == nil {
 					t.Fatalf("Expected no error, got: %q.\n", err)
