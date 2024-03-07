@@ -11,6 +11,90 @@ import (
 	"testing"
 )
 
+func TestGetAllFollowedFeeds(t *testing.T) {
+	expURLPath := "/feed_follows"
+	expHTTPMethod := http.MethodGet
+	expAuthMethod := "ApiKey"     // TODO perhaps use const or enum
+	ApiKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
+	expBody := ""
+	expContentType := "" // TODO Are these required
+	testCases := []struct {
+		testName string
+		expError error
+		expOut   string
+		resp     struct {
+			Status int
+			Body   string
+		}
+	}{
+		{testName: "Get all followed feeds: valid",
+			expError: nil,
+			expOut: `[
+	{
+	"ID": "some_id",
+	"CreatedAt": "some_time",
+	"UpdatedAt": "some_time",
+	"Name": "some_name",
+	"Url": "someUrl",
+	"UserID": "someid",
+	"LastFetchedAt": "someTime"
+	}]` + string('\n'),
+			resp: testResp[GET_FEEDS],
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			// validate request well formed
+			url, cleanup := mockServer(
+				func(w http.ResponseWriter, r *http.Request) {
+					if r.URL.Path != expURLPath {
+						t.Errorf("Poor request! Expected path: %q, got: %q", expURLPath, r.URL.Path)
+					}
+					if r.Method != expHTTPMethod {
+						t.Errorf("Poor request! Expected method: %q, got: %q", expHTTPMethod, r.Method)
+					}
+					authValue := r.Header.Get("Authorization")
+					if authValue == "" {
+						t.Fatal("No header provided")
+					}
+					authMethod := strings.Split(authValue, " ")[0]
+					if authMethod != expAuthMethod {
+						t.Fatalf("Incorrect authorization method, expected: %v, got: %v\n", expAuthMethod, authMethod)
+					}
+
+					body, err := io.ReadAll(r.Body)
+					if err != nil {
+						t.Fatal(err)
+					}
+					r.Body.Close()
+					if string(body) != expBody {
+						t.Errorf("Poor request! Expected body: %q, got: %q", expBody, string(body))
+					}
+					contentType := r.Header.Get("Content-Type")
+					if contentType != expContentType {
+						t.Errorf("Poor request! Expected Content-Type: %q, got: %q", expContentType, contentType)
+					}
+					w.WriteHeader(tc.resp.Status)
+					fmt.Fprintln(w, tc.resp.Body)
+				})
+			defer cleanup()
+			var out bytes.Buffer
+			err := getAllFollowedFeedsAction(&out, url, ApiKey)
+			if err != nil {
+				if tc.expError == nil {
+					t.Fatalf("Expected no error, got: %q.\n", err)
+				}
+				if tc.expError != err {
+					t.Errorf("Expected err: %v, got: %v\n", tc.expError, err)
+				}
+			}
+			if tc.expOut != out.String() {
+				t.Errorf("Expected: %q, \n\tgot: %q\n", tc.expOut, out.String())
+			}
+
+		})
+	}
+}
 func TestFollowFeed(t *testing.T) {
 	expURLPath := "/feed_follows"
 	expHTTPMethod := http.MethodPost

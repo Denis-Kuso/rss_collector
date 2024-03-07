@@ -47,15 +47,15 @@ var testResp = map[int]struct {
 	GET_FEEDS: {
 		Status: http.StatusOK,
 		Body: `[
-	":{
+	{
 	"ID": "some_id",
 	"CreatedAt": "some_time",
-	"UpdatedAt": "Sine_time",
+	"UpdatedAt": "some_time",
 	"Name": "some_name",
 	"Url": "someUrl",
 	"UserID": "someid",
 	"LastFetchedAt": "someTime"
-	}`},
+	}]`},
 
 	GET_FEEDS_NOT_FOUND: {
 		Status: http.StatusNotFound,
