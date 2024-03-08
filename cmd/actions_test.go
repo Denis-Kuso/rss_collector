@@ -11,6 +11,86 @@ import (
 	"testing"
 )
 
+func TestDeleteFeedFollow(t *testing.T) {
+	expURLPath := "/feed_follows/"
+	expHTTPMethod := http.MethodDelete
+	expAuthMethod := "ApiKey" // TODO perhaps use const or enum
+	expContentType := ""
+	expBody := ""
+	ApiKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
+	testCases := []struct {
+		name         string
+		expError     error
+		expOut       string
+		feedFollowID string
+		resp         struct {
+			Status int
+			Body   string
+		}
+	}{
+		{
+			name:         "delete existing feed_follow",
+			feedFollowID: "1337",
+			expError:     nil,
+			expOut:       `{"Unfollowed feed"}` + string('\n'),
+			resp:         testResp[DELETE_FOLLOW_FEED],
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			url, cleanup := mockServer(
+				func(w http.ResponseWriter, r *http.Request) {
+					if r.URL.Path != (expURLPath + tc.feedFollowID) {
+						t.Errorf("Poor request! Expected path: %q, got: %q", expURLPath, r.URL.Path)
+					}
+					if r.Method != expHTTPMethod {
+						t.Errorf("Poor request! Expected method: %q, got: %q", expHTTPMethod, r.Method)
+					}
+					authValue := r.Header.Get("Authorization")
+					if authValue == "" {
+						t.Fatal("No header provided")
+					}
+					authMethod := strings.Split(authValue, " ")[0]
+					if authMethod != expAuthMethod {
+						t.Fatalf("Incorrect authorization method, expected: %v, got: %v\n", expAuthMethod, authMethod)
+					}
+
+					body, err := io.ReadAll(r.Body)
+					if err != nil {
+						t.Fatal(err)
+					}
+					r.Body.Close()
+					if string(body) != expBody {
+						t.Errorf("Poor request! Expected body: %q, got: %q", expBody, string(body))
+					}
+					contentType := r.Header.Get("Content-Type")
+					if contentType != expContentType {
+						t.Errorf("Poor request! Expected Content-Type: %q, got: %q", expContentType, contentType)
+					}
+					w.WriteHeader(tc.resp.Status)
+					fmt.Fprintln(w, tc.resp.Body)
+				})
+			defer cleanup()
+			fmt.Print("Testing")
+			fmt.Println(url)
+			var out bytes.Buffer
+			err := deleteFollowFeedAction(&out, url, ApiKey, tc.feedFollowID)
+			if err != nil {
+				if tc.expError == nil {
+					t.Fatalf("Expected no error, got: %q.\n", err)
+				}
+				if tc.expError != err {
+					t.Errorf("Expected err: %v, got: %v\n", tc.expError, err)
+				}
+			}
+			if tc.expOut != out.String() {
+				t.Errorf("Expected: %q, \n\tgot: %q\n", tc.expOut, out.String())
+			}
+
+		})
+	}
+}
+
 func TestGetAllFollowedFeeds(t *testing.T) {
 	expURLPath := "/feed_follows"
 	expHTTPMethod := http.MethodGet
