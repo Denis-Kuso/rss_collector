@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"time"
 )
@@ -16,13 +17,20 @@ var (
 )
 
 const (
-	TIMEOUT  = 3
 	ROOT_URL = "http://www.localhost:8080" //TODO: change
 )
 
 func newClient() *http.Client {
+	const TIMEOUT  = 5
 	c := &http.Client{
 		Timeout: TIMEOUT * time.Second,
+		Transport: &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout: time.Second,
+			}).DialContext,
+			TLSHandshakeTimeout:   time.Second,
+			ResponseHeaderTimeout: time.Second,
+		},
 	}
 	return c
 }
@@ -54,9 +62,9 @@ func sendReq(url, method, apiKey, contentType string, expStatus int, body io.Rea
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
 	}
- 	if apiKey != "" {
- 		req.Header.Add("Authorization", "ApiKey " + apiKey) //TODO will default header allow this?
- 	}
+	if apiKey != "" {
+		req.Header.Add("Authorization", "ApiKey "+apiKey) //TODO will default header allow this?
+	}
 
 	r, err := newClient().Do(req)
 	if err != nil {
