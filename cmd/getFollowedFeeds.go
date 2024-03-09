@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -19,8 +20,10 @@ var getFollowedFeedsCmd = &cobra.Command{
 and usage of using your command. For example:
 
 	SOME example of usage: bla bla.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("getFollowedFeeds called")
+		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
+		return getAllFollowedFeedsAction(os.Stdout, ROOT_URL, key)
 	},
 }
 

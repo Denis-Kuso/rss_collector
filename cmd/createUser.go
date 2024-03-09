@@ -11,7 +11,7 @@ import (
 	"os"
 	"net/http"
 
-	"github.com/Denis-Kuso/cli_rss/pkg/fetch"
+	//"github.com/Denis-Kuso/cli_rss/pkg/fetch"
 	"github.com/spf13/cobra"
 )
 
@@ -27,9 +27,9 @@ var createUserCmd = &cobra.Command{
 	Long: `Succesful creations returns a key, which is used
 	for automatic login.`,
 	Args: cobra.ExactArgs(1), //ARGS AND FLAGS ARE NOT THE SAME THING
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("createUser called with:", args)
-		fetch.CreateUser(username)
+		return createUserAction(os.Stdout, ROOT_URL, args[0])
 	},
 }
 
