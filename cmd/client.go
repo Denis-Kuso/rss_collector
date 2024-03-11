@@ -17,7 +17,7 @@ var (
 )
 
 const (
-	ROOT_URL = "http://www.localhost:8080/v1" //TODO: change
+	ROOT_URL = "http://localhost:8080/v1" //TODO: change
 )
 
 func newClient() *http.Client {
