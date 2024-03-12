@@ -29,6 +29,8 @@ references.txt
 
 # tests http
 curlTest
+curloutputs
 
 # notes to self
 design_considerations.md
+bugs.md
