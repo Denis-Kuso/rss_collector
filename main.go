@@ -77,6 +77,9 @@ func main() {
 	apiRouter.Get(posts, state.MiddlewareAuth(state.GetPostsFromUser))
 	server := &http.Server{
 		Addr: ":" + port,
+		ReadHeaderTimeout: 500 * time.Millisecond,
+		ReadTimeout: 500 * time.Millisecond,
+		IdleTimeout: 1000 * time.Millisecond,
 		Handler: r,
 	}
 
