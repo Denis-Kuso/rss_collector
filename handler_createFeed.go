@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
 	"time"
+	"fmt"
 	"github.com/google/uuid"
 )
 
@@ -14,9 +15,9 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 
 	type Request struct {
 		Name string `json:"name"`
-		URL string `json:"url"` // PERHAPS URL TYPE?
+		URL string `json:"url"` 
 	}
-
+	var errMsg string
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest,"")// TODO better response
@@ -25,7 +26,14 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 	userReq := Request{}
 	err = json.Unmarshal(data, &userReq)
 	if err != nil{
-		respondWithError(w,http.StatusInternalServerError, "sorry")
+		if jsonErr, ok := err.(*json.SyntaxError); ok {
+			errMsg = fmt.Sprintf("cannot parse json, err occured at byte:%d", jsonErr.Offset)
+			respondWithError(w, http.StatusBadRequest, errMsg)
+			return
+		}
+		
+		errMsg = "cannot parse json"
+		respondWithError(w,http.StatusInternalServerError,errMsg)
 		return
 	}
 
@@ -38,6 +46,12 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		Url: userReq.URL,
 	})
 
+	if err != nil {
+		errMsg = fmt.Sprintf("cannot create a following to feed: %s; %s",userReq.Name, userReq.URL)
+		log.Printf("failed during feed creation: %v, %s; %s\n", err, userReq.Name, userReq.URL)
+		respondWithError(w, http.StatusInternalServerError,errMsg)
+		return
+	}
 	feedFollow, err := s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID: uuid.New(),
 		CreatedAt: time.Now().UTC(),
@@ -45,16 +59,10 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		UserID:    user.ID,
 		FeedID:    feed.ID,
 	})
-	if err != nil {
-		log.Printf("ERR during feedFollow creation: %v\n", err)
-		respondWithError(w, http.StatusInternalServerError, "Cannot create a followed feed")
-		return
-	}
-
 
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError,"Internal err")
-		log.Printf("ERR: %v\n",err)
+		log.Printf("failed during feed-follow creation: %v, %s; %s\n", err, userReq.Name, userReq.URL)
+		respondWithError(w, http.StatusInternalServerError,errMsg)
 		return
 	}
 	log.Printf("Succesful creation of feed %v\n", feed)
