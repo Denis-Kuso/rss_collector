@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"fmt"
 	"io"
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
 	"github.com/google/uuid"
@@ -15,16 +16,23 @@ func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request){
 	type userRequest struct{
 	Name string `json:"name"`
 	}
-	// parse request
+	var errMsg string
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest,"")// TODO better response
+		respondWithError(w, http.StatusBadRequest,"")// TODO better ERR handling 
 		return
 	}
 	userReq := userRequest{}
 	err = json.Unmarshal(data, &userReq)
 	if err != nil{
-		respondWithError(w,http.StatusInternalServerError,"sorry")
+		if jsonErr, ok := err.(*json.SyntaxError); ok {
+			errMsg = fmt.Sprintf("cannot parse json, err occured at byte:%d", jsonErr.Offset)
+			respondWithError(w, http.StatusBadRequest, errMsg)
+			return
+		}
+		
+		errMsg = "cannot parse json"
+		respondWithError(w,http.StatusInternalServerError,errMsg)
 		return
 	}
 
@@ -35,8 +43,9 @@ func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request){
 		Name: userReq.Name,
 	})
 	if err != nil {
-		log.Printf("Handle err:%v", err)
-		respondWithError(w, http.StatusInternalServerError,"Sorry pal, cant make you")
+		errMsg = fmt.Sprintf("cannot create user: %s", userReq.Name)
+		log.Printf("%s, err: %v", errMsg, err)
+		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
 	log.Printf("Created user: %v\n", user)
