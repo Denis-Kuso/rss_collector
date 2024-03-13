@@ -61,7 +61,7 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 	})
 
 	if err != nil {
-		log.Printf("failed during feed-follow creation: %v, %s; %s\n", err, userReq.Name, userReq.URL)
+		log.Printf("failed during feed creation: %v, %s; %s\n", err, userReq.Name, userReq.URL)
 		respondWithError(w, http.StatusInternalServerError,errMsg)
 		return
 	}
