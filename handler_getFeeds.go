@@ -1,19 +1,25 @@
-package main 
+package main
 
 import (
-	//"encoding/json"
+	"database/sql"
+	"errors"
 	"log"
 	"net/http"
-	//"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
 )
 
-func (s *stateConfig) GetFeeds(w http.ResponseWriter, r * http.Request) {
+func (s *stateConfig) GetFeeds(w http.ResponseWriter, r *http.Request) {
 
+	var errMsg string
 	feeds, err := s.DB.GetFeeds(r.Context())
 	if err != nil {
-		// TODO create more error granularity (not found vs internal error)
-		log.Printf(" [ ERR ] - GET ALL FEEDS:%v\n", err)
-		respondWithError(w, http.StatusNotFound, "No feeds")
+		if errors.Is(err, sql.ErrNoRows) {
+			errMsg = "no feeds found"
+			respondWithJSON(w, http.StatusOK, errMsg)
+			return
+		}
+		errMsg = "could not retrieve feeds"
+		log.Printf("%s: %v\n", errMsg, err)
+		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
 	respondWithJSON(w, http.StatusOK, feeds)
