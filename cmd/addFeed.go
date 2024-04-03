@@ -24,9 +24,13 @@ var addFeedCmd = &cobra.Command{
 	addFeed blogOnAgi www.agiblog.com`,
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		rooturl := "NON-existing-url" // TODO refactor to .env (perhaps struct)
-		APIKEY := "TESTING-API-KEY"// TODO refactor to .env
-		return addFeedAction(os.Stdout, args, rooturl, APIKEY)
+		rooturl := ROOT_URL // TODO refactor to .env (perhaps struct)
+		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE) //"TESTING-API-KEY"// TODO refactor to .env
+		if err != nil {
+			fmt.Fprintf(os.Stdout, "cannot read apiKey: %v", err)
+			os.Exit(5)
+		}
+		return addFeedAction(os.Stdout, args, rooturl, apiKey)
 	},
 }
 

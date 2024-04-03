@@ -42,6 +42,13 @@ func createUserAction(out io.Writer, base_url, name string) error {
 		fmt.Printf("Failed creating user: %s.Err: %v\n", name, err)
 		os.Exit(1)
 	}
+	apikey, err := ExtractApiKey(resp)
+	if err != nil {
+		return displayUser(out, resp)
+	}
+	// TODO propagate error for display?
+	//err = SaveApiKey([]byte(apikey), os.Stdout)
+	err = SaveApiKeyF([]byte(apikey), DEFAULT_ENV_FILE)
 	return displayUser(out, resp)
 }
 

@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"bytes"
@@ -56,7 +56,7 @@ func TestSaveApiKey(t *testing.T) {
 	}{
 		{testName: "happy case",
 			expErr: false,
-			expOut: "1337",
+			expOut: "APIKEY=1337",
 			input:  []byte("1337"),
 		},
 	}

@@ -25,8 +25,12 @@ Cobra is a CLI library for Go that empowers applications.
 to quickly create a Cobra application.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		rootURL := "NON-existing-url"
-		followFeedAction(os.Stdout, args[0], rootURL, "4|>11<3j")
+		rootURL := ROOT_URL 
+		apikey, err := ReadApiKey(DEFAULT_ENV_FILE)
+		if err != nil {
+			fmt.Fprintf(os.Stdout, "cannot read apikey: %v", err)
+		}
+		followFeedAction(os.Stdout, args[0], rootURL, apikey)
 	},
 }
 
