@@ -19,7 +19,8 @@ func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request){
 	var errMsg string
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest,"")// TODO better ERR handling 
+		errMsg = fmt.Sprintf("could not read request: %v", err)
+		respondWithError(w, http.StatusBadRequest, errMsg)
 		return
 	}
 	userReq := userRequest{}
