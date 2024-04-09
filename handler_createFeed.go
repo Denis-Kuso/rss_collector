@@ -52,7 +52,7 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		respondWithError(w, http.StatusInternalServerError,errMsg)
 		return
 	}
-	feedFollow, err := s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+	_, err = s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID: uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -65,13 +65,7 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		respondWithError(w, http.StatusInternalServerError,errMsg)
 		return
 	}
-	log.Printf("Succesful creation of feed %v\n", feed)
-	respondWithJSON(w, http.StatusOK, struct{
-		Feed database.Feed
-		FeedFollow database.FeedFollow}{
-			Feed: feed,
-			FeedFollow: feedFollow,
-		},
-	)
+	publicFeed := dbFeedToPublicFeed(feed)
+	respondWithJSON(w, http.StatusOK, publicFeed)
 	return
 }
