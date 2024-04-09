@@ -9,7 +9,7 @@ import (
 type PublicUser struct {
 	Name   string       `json:"name"`
 	ApiKey string       `json:"apiKey"`
-	Feeds  []PublicFeed `json:"followedFeeds"`
+	Feeds  []PublicFeed `json:"followedFeeds,omitempty"`
 }
 
 func dbUserToPublicUser(user database.User, feeds []database.Feed) PublicUser {

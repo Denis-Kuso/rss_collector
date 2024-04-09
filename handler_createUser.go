@@ -2,19 +2,19 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
+	"github.com/google/uuid"
+	"io"
 	"log"
 	"net/http"
 	"time"
-	"fmt"
-	"io"
-	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
-	"github.com/google/uuid"
 )
 
-func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request){
+func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 
-	type userRequest struct{
-	Name string `json:"name"`
+	type userRequest struct {
+		Name string `json:"name"`
 	}
 	var errMsg string
 	data, err := io.ReadAll(r.Body)
@@ -25,23 +25,23 @@ func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request){
 	}
 	userReq := userRequest{}
 	err = json.Unmarshal(data, &userReq)
-	if err != nil{
+	if err != nil {
 		if jsonErr, ok := err.(*json.SyntaxError); ok {
 			errMsg = fmt.Sprintf("cannot parse json, err occured at byte:%d", jsonErr.Offset)
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}
-		
+
 		errMsg = "cannot parse json"
-		respondWithError(w,http.StatusInternalServerError,errMsg)
+		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
 
 	user, err := s.DB.CreateUser(r.Context(), database.CreateUserParams{
-		ID: uuid.New(),
-		CreatedAt:time.Now().UTC(),
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
-		Name: userReq.Name,
+		Name:      userReq.Name,
 	})
 	if err != nil {
 		errMsg = fmt.Sprintf("cannot create user: %s", userReq.Name)
@@ -50,6 +50,8 @@ func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	log.Printf("Created user: %v\n", user)
-	respondWithJSON(w, http.StatusOK, user)
+
+	publicUser := dbUserToPublicUser(user, make([]database.Feed, 0)) // no feeds for a new user
+	respondWithJSON(w, http.StatusOK, publicUser)
 	return
 }
