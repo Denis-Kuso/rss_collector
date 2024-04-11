@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const createFeed = `-- name: CreateFeed :one
@@ -47,6 +48,43 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		&i.LastFetchedAt,
 	)
 	return i, err
+}
+
+const getBasicInfoFeed = `-- name: GetBasicInfoFeed :many
+
+SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at FROM feeds
+WHERE id = ANY($1::UUID[])
+`
+
+func (q *Queries) GetBasicInfoFeed(ctx context.Context, feedids []uuid.UUID) ([]Feed, error) {
+	rows, err := q.db.QueryContext(ctx, getBasicInfoFeed, pq.Array(feedids))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Feed
+	for rows.Next() {
+		var i Feed
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Name,
+			&i.Url,
+			&i.UserID,
+			&i.LastFetchedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getFeeds = `-- name: GetFeeds :many
@@ -130,6 +168,7 @@ WHERE id=$1
 RETURNING id, created_at, updated_at, name, url, user_id, last_fetched_at
 `
 
+// ANY($1::UUID[]);
 func (q *Queries) MarkFeedFetched(ctx context.Context, id uuid.UUID) (Feed, error) {
 	row := q.db.QueryRowContext(ctx, markFeedFetched, id)
 	var i Feed
