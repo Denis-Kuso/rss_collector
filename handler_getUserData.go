@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"fmt"
 	"database/sql"
@@ -16,8 +15,8 @@ func (s *stateConfig) GetUserData(w http.ResponseWriter, r *http.Request, user d
 	feedFollows, err := s.DB.GetFeedFollowsForUser(r.Context(), user.ID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-		errMsg = "err retrieving feed follows"
-		respondWithError(w, http.StatusInternalServerError, "can't retrieve feedfollows")
+		errMsg = fmt.Sprintf("err retrieving feed follows: %v", err)
+		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 		}
 	}
