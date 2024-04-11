@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
 )
 
@@ -49,5 +50,25 @@ func (s *stateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, u
 		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
-	respondWithJSON(w, http.StatusOK, posts)
+	SIZE := len(posts)
+	const FIRST int = 0
+	feedID := make([]uuid.UUID, 1)// need an array/slice for sql query
+	feeds := make([]database.Feed, SIZE)
+	for i, p := range posts{
+		feedID[FIRST] = p.FeedID
+		fmt.Printf("extracted feedId: %v\n", feedID[FIRST])
+		feed, err := s.DB.GetBasicInfoFeed(r.Context(),feedID)
+		fmt.Printf("recevied feed info %v\n", feed[FIRST])
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				errMsg = fmt.Sprintf("cannot retrieve info. Feed id: %v, err:%v", feedID, err)
+				respondWithError(w, http.StatusInternalServerError, errMsg)
+				return
+			}
+			continue
+		}
+		feeds[i] = feed[FIRST]
+	}
+	publicPosts := dbPostsToPublicPosts(posts, feeds)
+	respondWithJSON(w, http.StatusOK, publicPosts)
 }
