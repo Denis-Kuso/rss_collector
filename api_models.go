@@ -37,8 +37,8 @@ func dbFeedToPublicFeed(feed database.Feed) PublicFeed {
 func dbFeedToPublicFeeds(feeds []database.Feed) []PublicFeed {
 	SIZE := len(feeds)
 	f := make([]PublicFeed, SIZE)
-	for _, feed := range feeds {
-		f = append(f, dbFeedToPublicFeed(feed))
+	for i, feed := range feeds {
+		f[i] = dbFeedToPublicFeed(feed)
 	}
 	return f
 }
