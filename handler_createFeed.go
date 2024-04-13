@@ -20,7 +20,8 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 	var errMsg string
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest,"")// TODO better response
+		errMsg = fmt.Sprintf("cannot read request body: %v\n", err)
+		respondWithError(w, http.StatusBadRequest, errMsg)
 		return
 	}
 	userReq := Request{}
