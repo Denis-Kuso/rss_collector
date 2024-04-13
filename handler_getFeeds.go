@@ -22,6 +22,7 @@ func (s *stateConfig) GetFeeds(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
-	respondWithJSON(w, http.StatusOK, feeds)
+	publicFeeds := dbFeedToPublicFeeds(feeds)
+	respondWithJSON(w, http.StatusOK, publicFeeds)
 	return
 }

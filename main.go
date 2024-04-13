@@ -70,6 +70,7 @@ func main() {
 	go worker(dbQueries, 10* time.Second, 3)
 	apiRouter.Post(users, state.CreateUser)
 	apiRouter.Get(users, state.MiddlewareAuth(state.GetUserData))
+	apiRouter.Get(feeds, state.GetFeeds)
 	apiRouter.Post(feeds, state.MiddlewareAuth(state.CreateFeed))
 	apiRouter.Post(follow_feeds, state.MiddlewareAuth(state.FollowFeed))
 	apiRouter.Delete(follow_feeds +"/{"+QUERY_FEED_FOLLOW +"}", state.MiddlewareAuth(state.UnfollowFeed))
