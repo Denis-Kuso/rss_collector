@@ -7,7 +7,6 @@ build:
 	go build -o ${BINARY_NAME} main.go
 	@echo "Creating env file: ${USER_ENV_FILE}\n"
 	@touch ./${USER_ENV_FILE}
-	@echo "APIKEY=" > ${USER_ENV_FILE}
  
 run:
 	go build -o ${BINARY_NAME} main.go
