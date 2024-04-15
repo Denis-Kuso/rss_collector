@@ -21,9 +21,12 @@ and usage of using your command. For example:
 
 	SOME example of usage: bla bla.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("getFollowedFeeds called")
-		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		return getAllFollowedFeedsAction(os.Stdout, ROOT_URL, key)
+		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
+		if err != nil {
+			fmt.Fprintf(os.Stdout, "cannot load apikey: %v", err)
+			os.Exit(5)
+		}
+		return getAllFollowedFeedsAction(os.Stdout, ROOT_URL, apiKey)
 	},
 }
 

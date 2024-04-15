@@ -21,9 +21,12 @@ and usage of using your command. For example:
 
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("getPosts called")
-		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		getPostsAction(os.Stdout,ROOT_URL, key, "")
+		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
+		if err != nil {
+			fmt.Fprintf(os.Stdout, "cannot load apikey: %v", err)
+			os.Exit(5)
+		}
+		getPostsAction(os.Stdout,ROOT_URL, apiKey, "")
 	},
 }
 
