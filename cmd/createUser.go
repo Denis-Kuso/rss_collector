@@ -28,7 +28,6 @@ var createUserCmd = &cobra.Command{
 	for automatic login.`,
 	Args: cobra.ExactArgs(1), //ARGS AND FLAGS ARE NOT THE SAME THING
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("createUser called with:", args)
 		return createUserAction(os.Stdout, ROOT_URL, args[0])
 	},
 }

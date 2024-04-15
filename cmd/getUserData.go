@@ -18,7 +18,6 @@ var getUserDataCmd = &cobra.Command{
 	Short: "Output user data.",
 	Long:  `Perhaps unnessacry to use long description.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("getUserData called")
 		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
 		if err != nil {
 			fmt.Fprintf(os.Stdout, "cannot load apikey: %v", err)

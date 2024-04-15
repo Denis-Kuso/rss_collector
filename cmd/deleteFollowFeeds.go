@@ -21,7 +21,6 @@ and usage of using your command. For example:
 Some example of usage.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("deleteFollowFeeds called")
 	},
 }
 
