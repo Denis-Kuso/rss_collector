@@ -7,20 +7,27 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/spf13/cobra"
 )
 
 // deleteFollowFeedsCmd represents the deleteFollowFeeds command
 var deleteFollowFeedsCmd = &cobra.Command{
-	Use:   "deleteFollowFeeds <id>",
+	Use:   "unfollowFeed <feedID>",
 	Short: "Stop following feed",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
 Some example of usage.`,
 	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
+		if err != nil {
+			fmt.Fprintf(os.Stdout, "cannot load apikey: %v", err)
+			os.Exit(5)
+		}
+		return deleteFollowFeedAction(os.Stdout, ROOT_URL, apiKey, args[0])
 	},
 }
 
@@ -39,6 +46,8 @@ func init() {
 func deleteFollowFeedAction(out io.Writer, rootURL, apiKey, feedFollowID string) error {
 	resp, err := deleteFollowFeed(rootURL, apiKey, feedFollowID)
 	if err != nil {
+		// which errors are possible?
+		return fmt.Errorf("err: %v deleting feed: %v", err, feedFollowID)
 	}
 	_, err = fmt.Fprintf(out, string(resp))
 	return err
@@ -46,12 +55,23 @@ func deleteFollowFeedAction(out io.Writer, rootURL, apiKey, feedFollowID string)
 
 func deleteFollowFeed(rootURL, apiKey, feedFollowID string) ([]byte, error) {
 	ENDPOINT := "/feed_follows/"
-	// what about id
-	// assuming valid feedFollowID (integer)// TODO ENFORCE validity of ID
+	if ok := isValidID(feedFollowID); !ok {
+		return nil, fmt.Errorf("invalid id format: %v", feedFollowID)
+	}
 	url := rootURL + ENDPOINT + feedFollowID
 	resp, err := sendReq(url, http.MethodDelete, apiKey, "", http.StatusOK, nil)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
+}
+
+// check validity of provided id
+// asserting other properties of uuid left to server
+func isValidID(id string) bool {
+	const UUID_LENGTH = 36 // 4 hypens and 32 chars
+	if len([]rune(id)) != UUID_LENGTH {
+		return false
+	}
+	return true
 }
