@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -56,8 +57,8 @@ func displayAddFeed(out io.Writer, feed []byte) error {
 func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 	ENDPOINT := "/feeds"
 	url += ENDPOINT
-	if ok := isValidID(feed);!ok {
-		return nil, fmt.Errorf("invalid id format: %v", feed)
+	if ok := isUrl(feed);!ok {
+		return nil, fmt.Errorf("invalid url provided: %v", feed)
 	}
 	feedex := struct {
 		Name string `json:"name"`
@@ -77,4 +78,9 @@ func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 		os.Exit(1)
 	}
 	return resp, nil
+}
+
+func isUrl(providedURL string) bool {
+    u, err := url.Parse(providedURL)
+    return err == nil && u.Scheme != "" && u.Host != ""
 }
