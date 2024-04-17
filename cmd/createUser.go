@@ -38,8 +38,7 @@ func init() {
 func createUserAction(out io.Writer, base_url, name string) error {
 	resp, err := createUser(name, base_url)
 	if err != nil {
-		fmt.Printf("Failed creating user: %s.Err: %v\n", name, err)
-		os.Exit(1)
+		return err
 	}
 	apikey, err := ExtractApiKey(resp)
 	if err != nil {
@@ -71,8 +70,7 @@ func createUser(username, url string) (user []byte, err error) {
 	url += ENDPOINT
 
 	if ok := validateUsername(username); !ok{
-		fmt.Println("NOT OK")
-		return nil, ErrInvalidRequest// TODO CHANGE ERR VALUE
+		return nil, fmt.Errorf("%v: desired username: \"%s\" too long", ErrInvalidRequest, username)
 	}
 	name := struct {
 		Username string `json:"name"`
