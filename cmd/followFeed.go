@@ -24,13 +24,13 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 to quickly create a Cobra application.`,
 	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		rootURL := ROOT_URL 
 		apikey, err := ReadApiKey(DEFAULT_ENV_FILE)
 		if err != nil {
-			fmt.Fprintf(os.Stdout, "cannot read apikey: %v", err)
+			return fmt.Errorf("cannot read apiKey: %v\n", err)
 		}
-		followFeedAction(os.Stdout, args[0], rootURL, apikey)
+		return followFeedAction(os.Stdout, args[0], rootURL, apikey)
 	},
 }
 
