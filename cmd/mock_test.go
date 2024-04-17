@@ -7,10 +7,10 @@ import (
 
 const (
 	CREATE_USER_SUCCESS = iota
+	GET_USERS_DATA
 	CREATE_FEED_SUCCESS
 	GET_FEEDS
 	GET_FEEDS_NOT_FOUND
-	GET_USERS_DATA
 	FOLLOW_EXISTING_FEED
 	DELETE_FOLLOW_FEED
 	ALL_POSTS
@@ -22,6 +22,7 @@ const (
 	CREATED
 )
 
+// all responses accounted for?
 // testResp simulates test reponses from the API
 var testResp = map[int]struct {
 	Status int
@@ -29,47 +30,29 @@ var testResp = map[int]struct {
 }{
 	CREATE_USER_SUCCESS: {
 		Status: http.StatusOK,
-		Body:   `{"ID":"001","CreatedAt":"testTime","UpdatedAt":"2019-10-28T08:23:38.310097076-04:00","Name":"TestName","ApiKey":"414141414141"}`},
+		Body: `{"name":"Frodo","apikey":"bXkgcHJlY2lvdXM-aXRzLW1pbmU-bXkgZGVhciBnYW5kYWxm"}`},
 
 	CREATE_FEED_SUCCESS: {
 		Status: http.StatusOK,
-		Body: `{
-			"feed": {"id":"1", "CreatedAt":"someTime",
-					"updatedAt":"someTime",
-					"name":"testName",
-					"url":"testingURL",
-					"userID":"testID",
-					"LastFetchedAt":"someTime"},
-			"feedFollow: {"ID":"testId",
-					"CreatedAt":"testTime",
-					"UpdatedAt":"testTime",
-					"UserID":"testID",
-					"FeedID": "testID"}	
-}`},
+		Body: `{"name":"Blog on basting","url":"www.kitchen-baste.com/xml","id":"f3ffd9ef-69bd-4f28-9cee-3c6cbbfacb3e"}`},
 	GET_FEEDS: {
 		Status: http.StatusOK,
 		Body: `[
-	{
-	"ID": "some_id",
-	"CreatedAt": "some_time",
-	"UpdatedAt": "some_time",
-	"Name": "some_name",
-	"Url": "someUrl",
-	"UserID": "someid",
-	"LastFetchedAt": "someTime"
-	}]`},
+	{"name":"Blog on basting","url":"www.kitchen-baste.com/xml","id":"f3ffd9ef-69bd-4f28-9cee-3c6cbbfacb3e"},{"name":"Blog on compression","url":"www.techsavy.com/xml","id":"1eb60252-3712-4263-bdca-de7a3b6825e2"}
+	]`},
 
 	GET_FEEDS_NOT_FOUND: {
 		Status: http.StatusNotFound,
-		Body: `{
-}`},
+		Body: `{}`},
+
 	FOLLOW_EXISTING_FEED: {
 		Status: http.StatusOK,
-		Body:   `{"ID":"c52d3a13-2245-4991-8012-8856417b706f","CreatedAt":"2024-02-26T17:47:09.099267Z","UpdatedAt":"2024-02-26T17:47:09.099268Z","UserID":"8f588151-5489-4668-bfff-8c50021c1160","FeedID":"c5c9212c-57a3-4d68-b42e-addd951502c0"}`,
+		Body: `{"name":"Blog on compression","url":"www.techsavy.com/xml","id":"1eb60252-3712-4263-bdca-de7a3b6825e2"}`,
 	},
 	GET_USERS_DATA: {
 		Status: http.StatusOK,
-		Body:   `{"ID":"someID","CreatedAt":"someTime","UpdatedAt":"someTime","Name":"testName","ApiKey":"1337"}`,
+		Body:   `{"name":"Frodo","apikey":"bXkgcHJlY2lvdXM-aXRzLW1pbmU-bXkgZGVhciBnYW5kYWxm", "followedFeeds":[
+	{"name":"Blog on basting","url":"www.kitchen-baste.com/xml","id":"f3ffd9ef-69bd-4f28-9cee-3c6cbbfacb3e"},{"name":"Blog on compression","url":"www.techsavy.com/xml","id":"1eb60252-3712-4263-bdca-de7a3b6825e2"}]}`,
 	},
 	DELETE_FOLLOW_FEED: {
 		Status: http.StatusOK,
@@ -106,16 +89,12 @@ var testResp = map[int]struct {
 	},
 	ALL_POSTS: {
 		Status: http.StatusOK,
-		Body: `[{
-				"ID":"some_id",
-				"CreatedAt":"Sometime",
-				"UpdatedAt":"SomeTime",
-				"Title":"SomeTitle",
-				"Url":"SomeUrl",
-				"Description":"someString",
-				"PublishedAt":"Sometime",
-				"FeedID":"someID"
-				}]`},
+		Body: `[{"feedName":"XKCD",
+			"title": "Research Account",
+			"url": "https://xkcd.com/2894/"},
+			{"feedName":"newswire",
+			"title":"reddit kills api support",
+			"url":"https://netnewswire.blog/feed.xml"}]`},
 }
 
 // mockServer creates a mock server to simulate the RSS API
