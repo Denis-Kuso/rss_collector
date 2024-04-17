@@ -51,8 +51,8 @@ func followFeedAction(out io.Writer, feed_id, rootURL, apiKey string) error {
 func followFeed(feed_id, url, apiKey string) ([]byte, error) {
 	ENDPOINT := "/feed_follows"
 	url += ENDPOINT
-	if ok := validFeedID(feed_id); !ok {
-		return nil, nil // TODO some error, should this check happen before?
+	if ok := isValidID(feed_id);!ok {
+		return nil, fmt.Errorf("invalid id format: %v", feed_id)
 	}
 	feed := struct {
 		FeedID string `json:"feed_id"`
@@ -68,12 +68,5 @@ func followFeed(feed_id, url, apiKey string) ([]byte, error) {
 		fmt.Printf("ERR: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Successfuly followed feed: %s\n", feed)
 	return resp, nil
-
-}
-
-// TODO implement
-func validFeedID(feedID string) bool {
-	return true
 }
