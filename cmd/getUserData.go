@@ -20,8 +20,7 @@ var getUserDataCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
 		if err != nil {
-			fmt.Fprintf(os.Stdout, "cannot load apikey: %v", err)
-			os.Exit(5)
+			return fmt.Errorf("cannot load apikey: %v", err)
 		}
 		return getUserDataAction(os.Stdout, ROOT_URL, apiKey)
 	},
