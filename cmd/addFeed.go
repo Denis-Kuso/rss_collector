@@ -24,8 +24,8 @@ var addFeedCmd = &cobra.Command{
 	addFeed blogOnAgi www.agiblog.com`,
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		rooturl := ROOT_URL // TODO refactor to .env (perhaps struct)
-		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE) //"TESTING-API-KEY"// TODO refactor to .env
+		rooturl := ROOT_URL
+		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
 		if err != nil {
 			fmt.Fprintf(os.Stdout, "cannot read apiKey: %v", err)
 			os.Exit(5)
@@ -56,16 +56,15 @@ func displayAddFeed(out io.Writer, feed []byte) error {
 func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 	ENDPOINT := "/feeds"
 	url += ENDPOINT
-	// validate arg given
-	cleanFeed := validateArg(feed)
-	// TODO stopping point here if feed is invalid
-	// TODO need to provide apiKey
+	if ok := isValidID(feed);!ok {
+		return nil, fmt.Errorf("invalid id format: %v", feed)
+	}
 	feedex := struct {
 		Name string `json:"name"`
 		Feed string `json:"url"`
 	}{
 		Name: name,
-		Feed: cleanFeed}
+		Feed: feed}
 
 	var body bytes.Buffer
 	if err := json.NewEncoder(&body).Encode(feedex); err != nil {
@@ -77,11 +76,5 @@ func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 		fmt.Printf("ERR: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Successfuly added feed: %s\n", feed)
 	return resp, nil
-}
-
-// TODO
-func validateArg(arg string) string {
-	return arg
 }
