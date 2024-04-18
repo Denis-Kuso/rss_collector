@@ -85,7 +85,7 @@ func processFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 					continue
 				}
 			}
-			log.Printf("ERR: %v. Could not create post.\n", err)
+			log.Printf("ERR: %v. Could not create post from :%v\n", err, feed.Url)
 		}
 	log.Printf("Scraped feed: %s, found: %d posts.\n", feed.Name, len(feedData.Items))
 	}
