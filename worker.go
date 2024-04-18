@@ -3,17 +3,17 @@ package main
 import (
 	"context"
 	"database/sql"
-	"strings"
 	"log"
 	"sync"
 	"time"
+
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const (
 	FEEDS_TO_FETCH = 3;
-	POST_ALREADY_PRESENT = "duplicate key"
 )
 // Periodically:
 // fetch from DB feeds that need fetching (already have function)
@@ -79,14 +79,16 @@ func processFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 			})
 		if err != nil {
 			// ignore error if post already present
-			if strings.Contains(err.Error(), POST_ALREADY_PRESENT){
-				continue
+			if err, ok := err.(*pq.Error); ok {
+			// unique key violation https://www.postgresql.org/docs/current/errcodes-appendix.html
+				if err.Code == "23505" {
+					continue
+				}
 			}
 			log.Printf("ERR: %v. Could not create post.\n", err)
 		}
-		//log.Printf("Found post: %v\n", item.Title)
-	}
 	log.Printf("Scraped feed: %s, found: %d posts.\n", feed.Name, len(feedData.Items))
+	}
 }
 
 func parsePubTime(pubAtTime string) (time.Time, error){
