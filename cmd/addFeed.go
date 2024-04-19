@@ -74,8 +74,7 @@ func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 	resp, err := sendReq(url, http.MethodPost, apiKey, "application/json", http.StatusOK, &body)
 	if err != nil {
 		// TODO add more error granularity
-		fmt.Printf("ERR: %v\n", err)
-		os.Exit(1)
+		return nil, err
 	}
 	return resp, nil
 }

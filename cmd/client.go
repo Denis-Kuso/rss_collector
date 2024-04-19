@@ -77,7 +77,6 @@ func sendReq(url, method, apiKey, contentType string, expStatus int, body io.Rea
 		return nil, fmt.Errorf("Cannot read body: %w\n", err)
 	}
 	if r.StatusCode != expStatus {
-		fmt.Printf("Got status: %v, expected: %v\n", r.StatusCode, expStatus)
 		err = ErrInvalidResponse
 		if r.StatusCode == http.StatusNotFound {
 			err = ErrNotFound
