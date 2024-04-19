@@ -60,11 +60,11 @@ func TestIntegration(t *testing.T) {
 			t.Fatalf("Expected output: %v, got: %s\n", expOut, out.String())
 		}
 	})
-	t.Run("Get feed_follows", func(t *testing.T){
+	t.Run("Get feed_follows", func(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := getAllFollowedFeedsAction(&out, ROOT_URL,key)
+		err := getAllFollowedFeedsAction(&out, ROOT_URL, key)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
 		}
@@ -72,11 +72,11 @@ func TestIntegration(t *testing.T) {
 			t.Fatalf("Expected output: %v, got: %s\n", expOut, out.String())
 		}
 	})
-	t.Run("Get posts - no limit provided", func(t *testing.T){
+	t.Run("Get posts - no limit provided", func(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := getPostsAction(&out, ROOT_URL, key,"")
+		err := getPostsAction(&out, ROOT_URL, key, "")
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
 		}
@@ -84,10 +84,10 @@ func TestIntegration(t *testing.T) {
 			t.Fatalf("Expected output: %v, got: %s\n", expOut, out.String())
 		}
 	})
-	t.Run("Create feed", func(t *testing.T){
+	t.Run("Create feed", func(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
-		args := []string{"feedname","feedURL"}// TODO
+		args := []string{"feedname", "feedURL"} // TODO
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
 		err := addFeedAction(&out, args, ROOT_URL, key)
 		if err != nil {
@@ -98,7 +98,7 @@ func TestIntegration(t *testing.T) {
 		}
 	})
 	// Get user data here?
-	t.Run("Follow feed", func(t *testing.T){
+	t.Run("Follow feed", func(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
 		feed_id := "feedID"
@@ -111,12 +111,12 @@ func TestIntegration(t *testing.T) {
 			t.Fatalf("Expected output: %v, got: %s\n", expOut, out.String())
 		}
 	})
-	t.Run("Unfollow feed", func(t *testing.T){
+	t.Run("Unfollow feed", func(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
 		feed_id := "feedID"
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := deleteFollowFeedAction(&out,  ROOT_URL, key, feed_id)
+		err := deleteFollowFeedAction(&out, ROOT_URL, key, feed_id)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
 		}

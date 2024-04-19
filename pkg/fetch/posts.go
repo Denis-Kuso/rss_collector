@@ -1,14 +1,14 @@
-package fetch 
+package fetch
 
 import "fmt"
 
 type Post struct {
-	URL string
+	URL  string
 	Name string
 }
 
-func GetPosts() ([]Post) {
+func GetPosts() []Post {
 
-fmt.Println("getting posts")
+	fmt.Println("getting posts")
 	return []Post{}
 }

@@ -20,12 +20,12 @@ var getPostsCmd = &cobra.Command{
 and usage of using your command. For example:
 
 to quickly create a Cobra application.`,
-	RunE: func(cmd *cobra.Command, args []string) error{
+	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
 		if err != nil {
 			return fmt.Errorf("cannot load apikey: %v", err)
 		}
-		return getPostsAction(os.Stdout,ROOT_URL, apiKey, "")
+		return getPostsAction(os.Stdout, ROOT_URL, apiKey, "")
 	},
 }
 

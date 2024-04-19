@@ -8,14 +8,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"net/http"
+	"os"
 
 	//"github.com/Denis-Kuso/cli_rss/pkg/fetch"
 	"github.com/spf13/cobra"
 )
 
 var username string
+
 const (
 	MAX_USERNAME_LENGTH = 35
 )
@@ -60,7 +61,7 @@ func createUserF(username, url string) (resp []byte, err error) {
 	url += ENDPOINT
 	data, err := fetchEndpoint(c, url)
 	if err != nil {
-		return nil, fmt.Errorf("ERR: %v, during fetching with url:%v\n",err, url) 
+		return nil, fmt.Errorf("ERR: %v, during fetching with url:%v\n", err, url)
 	}
 	return data, nil
 }
@@ -69,13 +70,13 @@ func createUser(username, url string) (user []byte, err error) {
 	ENDPOINT := "/users"
 	url += ENDPOINT
 
-	if ok := validateUsername(username); !ok{
+	if ok := validateUsername(username); !ok {
 		return nil, fmt.Errorf("%v: desired username: \"%s\" too long", ErrInvalidRequest, username)
 	}
 	name := struct {
 		Username string `json:"name"`
-		}{
-			Username:username}
+	}{
+		Username: username}
 	var body bytes.Buffer
 	if err := json.NewEncoder(&body).Encode(name); err != nil {
 		return nil, err
@@ -83,7 +84,7 @@ func createUser(username, url string) (user []byte, err error) {
 	apiKey := ""
 	resp, err := sendReq(url, http.MethodPost, apiKey, "application/json", http.StatusOK, &body)
 	if err != nil {
-		fmt.Printf("ERR from sendReq: %v\n",err)
+		fmt.Printf("ERR from sendReq: %v\n", err)
 		os.Exit(1)
 	}
 	// TODO Then what?? process response or pass response forward?

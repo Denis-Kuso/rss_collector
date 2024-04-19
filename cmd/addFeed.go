@@ -57,7 +57,7 @@ func displayAddFeed(out io.Writer, feed []byte) error {
 func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 	ENDPOINT := "/feeds"
 	url += ENDPOINT
-	if ok := isUrl(feed);!ok {
+	if ok := isUrl(feed); !ok {
 		return nil, fmt.Errorf("invalid url provided: %v", feed)
 	}
 	feedex := struct {
@@ -80,6 +80,6 @@ func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 }
 
 func isUrl(providedURL string) bool {
-    u, err := url.Parse(providedURL)
-    return err == nil && u.Scheme != "" && u.Host != ""
+	u, err := url.Parse(providedURL)
+	return err == nil && u.Scheme != "" && u.Host != ""
 }
