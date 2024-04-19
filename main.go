@@ -39,6 +39,9 @@ func main() {
 	}
 	// Init db
 	db, err := sql.Open("postgres", dbURL)
+	if err := db.Ping(); err != nil {
+		log.Fatalf("db not connected: %v", err)
+}
 	dbQueries := database.New(db)
 	state := stateConfig{dbQueries}
 
