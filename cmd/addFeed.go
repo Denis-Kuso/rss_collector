@@ -81,5 +81,5 @@ func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 
 func isUrl(providedURL string) bool {
 	u, err := url.Parse(providedURL)
-	return err == nil && u.Scheme != "" && u.Host != ""
+	return err == nil && u.Scheme == "https" && u.Host != ""
 }
