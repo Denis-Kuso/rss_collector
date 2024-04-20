@@ -95,7 +95,8 @@ func createUser(username, url string) (user []byte, err error) {
 // Max length of username is 35 characters. White space cannot be used.
 func validateUsername(username string) bool {
 	runeUsername := []rune(username)
-	if len(runeUsername) > MAX_USERNAME_LENGTH {
+	n := len(runeUsername)
+	if n > MAX_USERNAME_LENGTH || n == 0 {
 		return false
 	}
 	return true

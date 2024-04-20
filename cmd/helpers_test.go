@@ -4,6 +4,44 @@ import (
 	"testing"
 )
 
+func TestValidateUsername(t *testing.T) {
+	const MAX_LENGTH = 35
+	type testCase struct {
+		name   string
+		input  string
+		expOut bool
+	}
+	tCases := []testCase{
+		{
+			name:   "empty string",
+			input:  "",
+			expOut: false,
+		},
+		{
+			name:   "invalid length",
+			input:  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+			expOut: false,
+		},
+		{
+			name:   "max allowed length",
+			input:  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", // MAX_LENGTH,
+			expOut: true,
+		},
+		{
+			name:   "one character",
+			input:  "£",
+			expOut: true,
+		},
+	}
+	for _, tc := range tCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := validateUsername(tc.input)
+			if result != tc.expOut {
+				t.Errorf("input: \"%s\", expected: %t, got %t\n", tc.input, tc.expOut, result)
+			}
+		})
+	}
+}
 func TestIsUrl(t *testing.T) {
 	type testCase struct {
 		name   string
