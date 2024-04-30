@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -77,9 +76,4 @@ func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 		return nil, err
 	}
 	return resp, nil
-}
-
-func isUrl(providedURL string) bool {
-	u, err := url.Parse(providedURL)
-	return err == nil && u.Scheme == "https" && u.Host != ""
 }

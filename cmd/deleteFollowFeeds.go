@@ -64,13 +64,3 @@ func deleteFollowFeed(rootURL, apiKey, feedFollowID string) ([]byte, error) {
 	}
 	return resp, nil
 }
-
-// check validity of provided id
-// asserting other properties of uuid left to server
-func isValidID(id string) bool {
-	const UUID_LENGTH = 36 // 4 hypens and 32 chars
-	if len([]rune(id)) != UUID_LENGTH {
-		return false
-	}
-	return true
-}

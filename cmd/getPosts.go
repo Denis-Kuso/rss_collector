@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -66,16 +65,4 @@ func getPosts(rootURL, apiKey, limit string) ([]byte, error) {
 		return nil, err
 	}
 	return resp, nil
-}
-
-func validLimit(limit string) bool {
-	const MAX_LIMIT = 100
-	i, err := strconv.Atoi(limit)
-	if err != nil {
-		return false
-	}
-	if (i < 0) || (i > MAX_LIMIT) {
-		return false
-	}
-	return true
 }
