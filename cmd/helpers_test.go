@@ -4,6 +4,44 @@ import (
 	"testing"
 )
 
+func TestValidLimit(t *testing.T) {
+	type testCase struct {
+		name   string
+		input  string
+		expOut bool
+	}
+	testCases := []testCase{
+		{
+			name:   "happy case",
+			input:  "1",
+			expOut: true,
+		},
+		{
+			name:   "invalid input - negative num",
+			input:  "-2",
+			expOut: false,
+		},
+		{
+			name:   "invalid input - NaN",
+			input:  "plane",
+			expOut: false,
+		},
+		{
+			name:   "max limit exceeded",
+			input:  "1000",
+			expOut: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := validLimit(tc.input)
+			if result != tc.expOut {
+				t.Errorf("input: \"%s\", expected: %t, got %t\n", tc.input, tc.expOut, result)
+			}
+		})
+	}
+}
+
 func TestValidateUsername(t *testing.T) {
 	const MAX_LENGTH = 35
 	type testCase struct {

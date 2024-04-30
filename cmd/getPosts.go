@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -43,12 +44,6 @@ func init() {
 	// getPostsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 func getPostsAction(out io.Writer, rootURL, apiKey, limit string) error {
-	// validate limit (before making a request or call to getPosts
-	ok := validLimit(limit)
-	if !ok {
-		fmt.Printf("ERR: Invalid query value:%v\n", limit)
-		os.Exit(1)
-	}
 	resp, err := getPosts(rootURL, apiKey, limit)
 	if err != nil {
 		return err
@@ -59,9 +54,11 @@ func getPostsAction(out io.Writer, rootURL, apiKey, limit string) error {
 
 func getPosts(rootURL, apiKey, limit string) ([]byte, error) {
 	ENDPOINT := "/posts"
-	//assuming valid limit (if any) provided
 	url := rootURL + ENDPOINT
 	if limit != "" {
+		if ok := validLimit(limit); !ok {
+			return nil, fmt.Errorf("%s: invalid limit: %s", ErrInvalidRequest, limit)
+		}
 		url += "?limit=" + limit
 	}
 	resp, err := sendReq(url, http.MethodGet, apiKey, "", http.StatusOK, nil)
@@ -71,7 +68,14 @@ func getPosts(rootURL, apiKey, limit string) ([]byte, error) {
 	return resp, nil
 }
 
-// TODO implement
 func validLimit(limit string) bool {
+	const MAX_LIMIT = 100
+	i, err := strconv.Atoi(limit)
+	if err != nil {
+		return false
+	}
+	if (i < 0) || (i > MAX_LIMIT) {
+		return false
+	}
 	return true
 }
