@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
+	"github.com/Denis-Kuso/rss_aggregator_p/internal/validate"
 	"github.com/google/uuid"
 	"io"
 	"log"
@@ -34,6 +35,11 @@ func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 		errMsg = "cannot parse json"
 		respondWithError(w, http.StatusInternalServerError, errMsg)
+		return
+	}
+	if ok := validate.ValidateUsername(userReq.Name); !ok {
+		errMsg = fmt.Sprintf("invalid username: %s", userReq.Name)
+		respondWithError(w, http.StatusBadRequest, errMsg)
 		return
 	}
 
