@@ -12,6 +12,9 @@ import (
 
 func (s *stateConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	var errMsg string
+	type response struct {
+		Name string `json:"unfollowedFeed"`
+	}
 	providedFeedID := chi.URLParam(r, QUERY_FEED_FOLLOW)
 
 	feedID, err := uuid.Parse(providedFeedID)
@@ -32,6 +35,6 @@ func (s *stateConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request, user 
 		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
-	respondWithJSON(w, http.StatusOK, "Unfollowed feed")
+	respondWithJSON(w, http.StatusOK, response{providedFeedID})
 	return
 }
