@@ -56,9 +56,7 @@ func (s *stateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, u
 	feeds := make([]database.Feed, SIZE)
 	for i, p := range posts{
 		feedID[FIRST] = p.FeedID
-		fmt.Printf("extracted feedId: %v\n", feedID[FIRST])
 		feed, err := s.DB.GetBasicInfoFeed(r.Context(),feedID)
-		fmt.Printf("recevied feed info %v\n", feed[FIRST])
 		if err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
 				errMsg = fmt.Sprintf("cannot retrieve info. Feed id: %v, err:%v", feedID, err)
