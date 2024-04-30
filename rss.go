@@ -101,8 +101,10 @@ func fetchFeed(url string) ([]byte, error){
 		log.Printf("Failed request: %v\n", err)
 		return nil, err
 	}
-	defer res.Body.Close()
 	resp, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
 	log.Printf("Successfull response from %v, parsing response...\n", url)
 	return resp, nil
 }
