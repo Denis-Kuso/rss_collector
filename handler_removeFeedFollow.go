@@ -12,22 +12,22 @@ import (
 
 func (s *stateConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	var errMsg string
-	providedFeedFollowID := chi.URLParam(r, QUERY_FEED_FOLLOW)
+	providedFeedID := chi.URLParam(r, QUERY_FEED_FOLLOW)
 
-	feedFollowID, err := uuid.Parse(providedFeedFollowID)
+	feedID, err := uuid.Parse(providedFeedID)
 	if err != nil {
-		errMsg = fmt.Sprintf("Cannot parse feed id: %s", providedFeedFollowID)
+		errMsg = fmt.Sprintf("Cannot parse feed id: %s", providedFeedID)
 		log.Printf("%s; err: %v\n", errMsg, err)
 		respondWithError(w, http.StatusBadRequest, errMsg)
 		return
 	}
 
 	err = s.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
-		FeedID: feedFollowID,
+		FeedID: feedID,
 		UserID: user.ID,
 	})
 	if err != nil {
-		errMsg = fmt.Sprintf("cannot unfollow feed: %s", providedFeedFollowID)
+		errMsg = fmt.Sprintf("cannot unfollow feed: %s", providedFeedID)
 		log.Printf("%s; err: %v\n", errMsg, err)
 		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
