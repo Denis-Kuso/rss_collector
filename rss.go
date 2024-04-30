@@ -111,7 +111,6 @@ func fetchFeed(url string) ([]byte, error){
 
 // returns feed given a valid url
 func URLtoFeed(url string) (Feed, error){
-	// make request
 	resp, err := fetchFeed(url)
 	if err != nil{
 		log.Printf("ERR during fetching URL: %v\n", err)
@@ -120,7 +119,6 @@ func URLtoFeed(url string) (Feed, error){
 	rss := TempFeed{}
 	err = xml.Unmarshal(resp, &rss)
 	if err != nil {
-		log.Fatalf("ERR during unmarshaling: %v\n", err)
 		return Feed{}, err
 	}
 	feeds := rss.pruneFeeds()
