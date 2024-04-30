@@ -6,10 +6,10 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
+	"github.com/Denis-Kuso/rss_aggregator_p/internal/validate"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -40,8 +40,13 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
-	if ok := isValidURL(userReq.URL); !ok {
+	if ok := validate.IsUrl(userReq.URL); !ok {
 		errMsg = fmt.Sprintf("invalid url format: %s", userReq.URL)
+		respondWithError(w, http.StatusBadRequest, errMsg)
+		return
+	}
+	if ok:= validate.ValidateUsername(userReq.Name); !ok { // same checks as username for now
+		errMsg = fmt.Sprintf("invalid feed name: %s", userReq.Name)
 		respondWithError(w, http.StatusBadRequest, errMsg)
 		return
 	}
@@ -84,9 +89,4 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 	publicFeed := dbFeedToPublicFeed(feed)
 	respondWithJSON(w, http.StatusOK, publicFeed)
 	return
-}
-
-func isValidURL(providedURL string) bool {
-	u, err := url.Parse(providedURL)
-	return err == nil && u.Scheme != "" && u.Host != ""
 }
