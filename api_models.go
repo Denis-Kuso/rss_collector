@@ -58,7 +58,7 @@ func dbPostToPublicPost(post database.Post, feed database.Feed) PublicPost {
 	}
 }
 
-func dbPostsToPublicPosts(posts []database.Post, feeds []database.Feed) []PublicPost{
+func dbPostsToPublicPosts(posts []database.Post, feeds []database.Feed) []PublicPost {
 	SIZE := len(posts)
 	p := make([]PublicPost, SIZE)
 	for i := 0; i < SIZE; i++ {
