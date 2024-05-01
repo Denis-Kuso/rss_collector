@@ -25,7 +25,7 @@ func (s *stateConfig) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request
 		return
 	}
 	feedIDs := make([]uuid.UUID, len(feedFollows))
-	for i, f := range feedFollows{
+	for i, f := range feedFollows {
 		feedIDs[i] = f.FeedID
 	}
 	feeds, err := s.DB.GetBasicInfoFeed(r.Context(), feedIDs)

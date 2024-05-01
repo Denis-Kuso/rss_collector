@@ -2,14 +2,15 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
-	"io"
-	"time"
 	"fmt"
 	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
 	"github.com/google/uuid"
+	"io"
+	"net/http"
+	"time"
 )
-func (s *stateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User){
+
+func (s *stateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	type userRequest struct {
 		FeedID uuid.UUID `json:"feed_id"`
 	}
@@ -28,17 +29,15 @@ func (s *stateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user da
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}
-		
+
 		errMsg = "cannot parse json"
-		respondWithError(w,http.StatusInternalServerError, errMsg)
+		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
-	// a feedfollow can be created for an existing feed-not merely when a feed is created
-	// Should I also create a FEED if it does not exist?
-	feedFollow, err := s.DB.CreateFeedFollow(r.Context(),database.CreateFeedFollowParams{
-		ID: uuid.New(),
-		UserID: user.ID,
-		FeedID: userReq.FeedID,
+	feedFollow, err := s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		UserID:    user.ID,
+		FeedID:    userReq.FeedID,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 	})

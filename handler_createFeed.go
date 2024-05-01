@@ -45,7 +45,7 @@ func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		respondWithError(w, http.StatusBadRequest, errMsg)
 		return
 	}
-	if ok:= validate.ValidateUsername(userReq.Name); !ok { // same checks as username for now
+	if ok := validate.ValidateUsername(userReq.Name); !ok { // same checks as username for now
 		errMsg = fmt.Sprintf("invalid feed name: %s", userReq.Name)
 		respondWithError(w, http.StatusBadRequest, errMsg)
 		return
