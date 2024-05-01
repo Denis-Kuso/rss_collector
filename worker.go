@@ -61,10 +61,9 @@ func processFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 			description.Valid = true
 		}
 		
-		pubAt, err := parsePubTime(item.PublishedAt);
+		pubAt, err := transformPubTime(item.PublishedAt)
 		if err != nil {
-			log.Printf("ERR: %v. Cannot parse pub time\n", err)
-			// continue
+			log.Printf("ERR: %v. Post: %s. Pub time: %s\n", err, item.Link, item.PublishedAt)
 		}
 		// DO I WANT TO LOG THE POST THAT WAS CREATED?
 		_, err = db.CreatePost(context.Background(), database.CreatePostParams{
@@ -91,11 +90,27 @@ func processFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 	}
 }
 
-func parsePubTime(pubAtTime string) (time.Time, error){
-	// TODO handle multiple different formats
-	t, err := time.Parse(time.RFC3339,pubAtTime)
-	if err != nil{
-		return time.Time{}, err
+ func transformPubTime(pubTime string)(time.Time, error) {
+	const DESIRED_FORMAT = time.RFC3339
+	FORMATS := []string{time.RFC822, time.RFC822Z, time.RFC1123, time.RFC850, time.RFC1123Z,
+		 time.DateTime, time.DateOnly, time.Stamp, "Mon, 2 Jan 2006 15:04:05 MST"}// custom format found in one of the feeds
+	var t_pub time.Time 
+	var err error
+
+	if t_pub, err = time.Parse(DESIRED_FORMAT, pubTime); err != nil {
+		// try other formats
+		for _, format := range FORMATS {
+			if t_pub, err = time.Parse(format, pubTime); err != nil {
+				continue
+			} else {
+				t_str := t_pub.Format(DESIRED_FORMAT)
+				_, err = time.Parse(DESIRED_FORMAT, t_str)
+				if err != nil {
+					log.Printf("failed to transform time: %s, %v\n", err, t_str)
+				}
+				break
+			}
+		}
 	}
-	return t,nil
+	return t_pub, err
 }
