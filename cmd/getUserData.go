@@ -17,6 +17,7 @@ var getUserDataCmd = &cobra.Command{
 	Use:   "getUserData",
 	Short: "Output user data.",
 	Long:  `Perhaps unnessacry to use long description.`,
+	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
 		if err != nil {

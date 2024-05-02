@@ -20,6 +20,7 @@ var getFollowedFeedsCmd = &cobra.Command{
 and usage of using your command. For example:
 
 	SOME example of usage: bla bla.`,
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
 		if err != nil {
