@@ -55,7 +55,7 @@ func createUserAction(out io.Writer, base_url, name string, overwrite bool) erro
 	}
 	apikey, err := ExtractApiKey(resp)
 	if err != nil {
-		return displayUser(out, resp)
+		return err
 	}
 	// TODO propagate error for display?
 	err = SaveApiKeyF([]byte(apikey), DEFAULT_ENV_FILE)
