@@ -21,7 +21,8 @@ var followFeedCmd = &cobra.Command{
 	Long: `There might be feeds on the server added by other users or offered
 as potentialy interesting feeds. By browsing through them, any feed of interest
 	can then be followed by using this command with a feed_id.`,
-	Args: cobra.ExactArgs(1),
+	Example: "followFeed c607531a-832a-4b44-9b13-3acd9839d165",
+	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		rootURL := ROOT_URL
 		apikey, err := ReadApiKey(DEFAULT_ENV_FILE)

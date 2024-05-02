@@ -19,7 +19,8 @@ var deleteFollowFeedsCmd = &cobra.Command{
 	Long: `If you no longer wish to receive posts from a feed, use this command
 	to stop following the feed. FeedID can be obtained by calling getFollowedFeeds,
 	getUserData or getAllFeeds`,
-	Args: cobra.ExactArgs(1),
+	Example: "unfollowFeed c607531a-832a-4b44-9b13-3acd9839d165",
+	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
 		if err != nil {
