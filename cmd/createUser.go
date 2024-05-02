@@ -29,14 +29,26 @@ var createUserCmd = &cobra.Command{
 	for automatic login.`,
 	Args: cobra.ExactArgs(1), //ARGS AND FLAGS ARE NOT THE SAME THING
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return createUserAction(os.Stdout, ROOT_URL, args[0])
+		overwrite, err := cmd.Flags().GetBool("overwrite")
+		if err != nil {
+			return err
+		}
+		return createUserAction(os.Stdout, ROOT_URL, args[0], overwrite)
 	},
 }
 
 func init() {
+	var Overwrite bool
 	rootCmd.AddCommand(createUserCmd)
+	createUserCmd.Flags().BoolVarP(&Overwrite, "overwrite", "o", false, "overwrite an existing apikey")
 }
-func createUserAction(out io.Writer, base_url, name string) error {
+func createUserAction(out io.Writer, base_url, name string, overwrite bool) error {
+	_, err := ReadApiKey(DEFAULT_ENV_FILE)
+	// user already exists
+	if err == nil && !overwrite {
+		return fmt.Errorf("a user already exists. Use -o flag if you would like to overwrite current user")
+	}
+
 	resp, err := createUser(name, base_url)
 	if err != nil {
 		return err
@@ -46,7 +58,6 @@ func createUserAction(out io.Writer, base_url, name string) error {
 		return displayUser(out, resp)
 	}
 	// TODO propagate error for display?
-	//err = SaveApiKey([]byte(apikey), os.Stdout)
 	err = SaveApiKeyF([]byte(apikey), DEFAULT_ENV_FILE)
 	return displayUser(out, resp)
 }
