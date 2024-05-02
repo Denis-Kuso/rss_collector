@@ -16,12 +16,15 @@ import (
 
 // addFeedCmd represents the addFeed command
 var addFeedCmd = &cobra.Command{
-	Use:   "addFeed <feedName> <feedUrl>",
-	Short: "Add a feed to the feeder",
-	Long: `The feed added is automatically followed by the user.
-
- Example: 
-	addFeed blogOnAgi www.agiblog.com`,
+	Use:     "addFeed <feedName> <feedUrl>",
+	Short:   "Add a feed from which you would like to collect posts",
+	Example: "addFeed 'memes' https://xkcd.com/rss.xml",
+	Long: `Add a feed which you want to follow and receive posts/podcasts from.
+	To provide a feed name using white space use single or double quotes
+	
+	Example:
+	 addFeed "funny memes" https://xkcd.com/rss.xml
+	`,
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		rooturl := ROOT_URL

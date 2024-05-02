@@ -17,12 +17,10 @@ import (
 // followFeedCmd represents the followFeed command
 var followFeedCmd = &cobra.Command{
 	Use:   "followFeed <feed_id>",
-	Short: "Follow a feed added by someone else.",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-to quickly create a Cobra application.`,
+	Short: "Follow a feed added by someone else",
+	Long: `There might be feeds on the server added by other users or offered
+as potentialy interesting feeds. By browsing through them, any feed of interest
+	can then be followed by using this command with a feed_id.`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		rootURL := ROOT_URL

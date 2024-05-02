@@ -15,8 +15,7 @@ import (
 // getUserDataCmd represents the getUserData command
 var getUserDataCmd = &cobra.Command{
 	Use:   "getUserData",
-	Short: "Output user data.",
-	Long:  `Perhaps unnessacry to use long description.`,
+	Short: "retrieve user's feeds, username, apikey",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
@@ -29,16 +28,6 @@ var getUserDataCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(getUserDataCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// getUserDataCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// getUserDataCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func getUserDataAction(out io.Writer, rootURL, apiKey string) error {

@@ -12,8 +12,10 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "cli_rss",
-	Short: "CLI client for rss agreggator at localhost:somePORT",
-	Long:  `WILL write a longer description in the future.`,
+	Short: "a CLI client for rss feeds",
+	Long: `Add feeds which you would like to follow, follow feeds added by
+	other users. Unfollow them for whatever reason. Collect posts from the
+	followed feeds`,
 	// Run: func(cmd *cobra.Command, args []string) { },
 }
 

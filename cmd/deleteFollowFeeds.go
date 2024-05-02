@@ -15,11 +15,10 @@ import (
 // deleteFollowFeedsCmd represents the deleteFollowFeeds command
 var deleteFollowFeedsCmd = &cobra.Command{
 	Use:   "unfollowFeed <feedID>",
-	Short: "Stop following feed",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Some example of usage.`,
+	Short: "Stop following a feed",
+	Long: `If you no longer wish to receive posts from a feed, use this command
+	to stop following the feed. FeedID can be obtained by calling getFollowedFeeds,
+	getUserData or getAllFeeds`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
@@ -32,14 +31,6 @@ Some example of usage.`,
 
 func init() {
 	rootCmd.AddCommand(deleteFollowFeedsCmd)
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// deleteFollowFeedsCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// deleteFollowFeedsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func deleteFollowFeedAction(out io.Writer, rootURL, apiKey, feedFollowID string) error {

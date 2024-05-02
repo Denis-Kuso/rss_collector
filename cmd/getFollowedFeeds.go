@@ -15,12 +15,8 @@ import (
 // getFollowedFeedsCmd represents the getFollowedFeeds command
 var getFollowedFeedsCmd = &cobra.Command{
 	Use:   "getFollowedFeeds",
-	Short: "Get all the feeds currently following.",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-	SOME example of usage: bla bla.`,
-	Args: cobra.NoArgs,
+	Short: "Get all the feeds you are currently following",
+	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
 		if err != nil {

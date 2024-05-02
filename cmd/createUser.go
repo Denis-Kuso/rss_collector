@@ -24,10 +24,15 @@ const (
 // createUserCmd represents the createUser command
 var createUserCmd = &cobra.Command{
 	Use:   "createUser <username>",
-	Short: "Creates a new user.",
-	Long: `Succesful creations returns a key, which is used
-	for automatic login.`,
-	Args: cobra.ExactArgs(1), //ARGS AND FLAGS ARE NOT THE SAME THING
+	Short: "Create a new user",
+	Long: `A user needs to be created in order to use this tool.
+	Succesful creation returns a key, enabling automatic login and usage
+	of other commands. Further invocation without -o flag will alert the
+	user that the existing key will be overwritten. If this is the desired
+	behaviour and the user wants to retain access to previous the user, the
+	key should be saved in a safe place.`,
+	Example: "  createUser Frodo\nTo replace user:\n  createUser -o Smeagol",
+	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		overwrite, err := cmd.Flags().GetBool("overwrite")
 		if err != nil {
