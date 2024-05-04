@@ -23,7 +23,7 @@ var getPostsCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cannot load apikey: %v", err)
 		}
-		return getPostsAction(os.Stdout, ROOT_URL, apiKey, "")
+		return getPostsAction(os.Stdout, API_URL, apiKey, "")
 	},
 }
 

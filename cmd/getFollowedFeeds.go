@@ -22,7 +22,7 @@ var getFollowedFeedsCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cannot load apikey: %v", err)
 		}
-		return getAllFollowedFeedsAction(os.Stdout, ROOT_URL, apiKey)
+		return getAllFollowedFeedsAction(os.Stdout, API_URL, apiKey)
 	},
 }
 

@@ -20,7 +20,7 @@ var getPublicFeedsCmd = &cobra.Command{
 	will get some tech-related feeds which you can follow or use to try the tool.
 	Does not require being a user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return getPublicFeedsAction(os.Stdout, ROOT_URL)
+		return getPublicFeedsAction(os.Stdout, API_URL)
 	},
 }
 

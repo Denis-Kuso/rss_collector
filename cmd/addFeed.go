@@ -27,13 +27,12 @@ var addFeedCmd = &cobra.Command{
 	`,
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		rooturl := ROOT_URL
 		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
 		if err != nil {
 			fmt.Fprintf(os.Stdout, "cannot read apiKey: %v", err)
 			os.Exit(5)
 		}
-		return addFeedAction(os.Stdout, args, rooturl, apiKey)
+		return addFeedAction(os.Stdout, args, API_URL, apiKey)
 	},
 }
 

@@ -17,7 +17,6 @@ var (
 )
 
 const (
-	ROOT_URL         = "http://localhost:8080/v1" //TODO: change
 	DEFAULT_ENV_FILE = "./.env"
 )
 

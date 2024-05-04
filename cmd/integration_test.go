@@ -38,7 +38,7 @@ func TestIntegration(t *testing.T) {
 	t.Run("Get existing user data", func(t *testing.T) {
 		expOut := `{"ID":"a42113b1-ed14-458a-aecb-c42c0c17fbda","CreatedAt":"2024-02-02T17:09:44.334957Z","UpdatedAt":":"2024-02-02T17:09:44.334957Z","Name":"Pobro","ApiKey":"6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"}`
 		var out bytes.Buffer
-		err := getUserDataAction(&out, ROOT_URL, user.key)
+		err := getUserDataAction(&out, API_URL, user.key)
 		if err != nil {
 			t.Fatalf("Expected no error, got: %v\n", err)
 		}
@@ -50,7 +50,7 @@ func TestIntegration(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := getUserDataAction(&out, ROOT_URL, key)
+		err := getUserDataAction(&out, API_URL, key)
 		if err != nil {
 			if errors.Is(err, ErrInvalidResponse) {
 				t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
@@ -64,7 +64,7 @@ func TestIntegration(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := getAllFollowedFeedsAction(&out, ROOT_URL, key)
+		err := getAllFollowedFeedsAction(&out, API_URL, key)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
 		}
@@ -76,7 +76,7 @@ func TestIntegration(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := getPostsAction(&out, ROOT_URL, key, "")
+		err := getPostsAction(&out, API_URL, key, "")
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
 		}
@@ -89,7 +89,7 @@ func TestIntegration(t *testing.T) {
 		var out bytes.Buffer
 		args := []string{"feedname", "feedURL"} // TODO
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := addFeedAction(&out, args, ROOT_URL, key)
+		err := addFeedAction(&out, args, API_URL, key)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
 		}
@@ -103,7 +103,7 @@ func TestIntegration(t *testing.T) {
 		var out bytes.Buffer
 		feed_id := "feedID"
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := followFeedAction(&out, feed_id, ROOT_URL, key)
+		err := followFeedAction(&out, feed_id, API_URL, key)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
 		}
@@ -116,7 +116,7 @@ func TestIntegration(t *testing.T) {
 		var out bytes.Buffer
 		feed_id := "feedID"
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := deleteFollowFeedAction(&out, ROOT_URL, key, feed_id)
+		err := deleteFollowFeedAction(&out, API_URL, key, feed_id)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
 		}

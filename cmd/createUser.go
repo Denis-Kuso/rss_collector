@@ -38,7 +38,7 @@ var createUserCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return createUserAction(os.Stdout, ROOT_URL, args[0], overwrite)
+		return createUserAction(os.Stdout, API_URL, args[0], overwrite)
 	},
 }
 

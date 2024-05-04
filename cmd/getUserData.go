@@ -22,7 +22,8 @@ var getUserDataCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cannot load apikey: %v", err)
 		}
-		return getUserDataAction(os.Stdout, ROOT_URL, apiKey)
+		//rooturl := API_URL
+		return getUserDataAction(os.Stdout, API_URL, apiKey)
 	},
 }
 

@@ -26,7 +26,7 @@ var deleteFollowFeedsCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cannot load apikey: %v", err)
 		}
-		return deleteFollowFeedAction(os.Stdout, ROOT_URL, apiKey, args[0])
+		return deleteFollowFeedAction(os.Stdout, API_URL, apiKey, args[0])
 	},
 }
 
