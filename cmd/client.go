@@ -16,10 +16,6 @@ var (
 	ErrInvalidRequest  = errors.New("Malformed request")
 )
 
-const (
-	DEFAULT_ENV_FILE = "./.env"
-)
-
 func newClient() *http.Client {
 	const TIMEOUT = 5
 	c := &http.Client{

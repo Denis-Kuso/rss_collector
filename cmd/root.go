@@ -33,25 +33,32 @@ func Execute() {
 func init() {
 
 	cobra.OnInitialize(initConfig)
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cli_rss.yaml)")
+	msg := fmt.Sprintf("config file (default is %s)", DEFAULT_ENV_FILE)
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", msg)
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-// website address specified in env file
-var API_URL string
+var (
+	// server address
+	API_URL          string
+	DEFAULT_ENV_FILE string = "./.env"
+	cfgFile          string
+)
 
 func initConfig() {
 	const keyURL string = "SERVER_URL"
-
-	err := godotenv.Load()
+	if cfgFile != "" {
+		DEFAULT_ENV_FILE = cfgFile
+	}
+	err := godotenv.Load(DEFAULT_ENV_FILE)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 	API_URL = os.Getenv(keyURL)
 	if API_URL == "" {
-		fmt.Printf("No url specified: \"%s\"\n", API_URL)
+		fmt.Printf("No server addres specified: \"%s\"\n", API_URL)
 		os.Exit(1)
 	}
 }
