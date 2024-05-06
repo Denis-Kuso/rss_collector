@@ -1,13 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
-	"github.com/google/uuid"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func (s *stateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -34,7 +38,20 @@ func (s *stateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user da
 		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
-	feedFollow, err := s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+	FeedID := []uuid.UUID{userReq.FeedID}
+	// does desired feed even exist?
+	feedsInfo, err := s.DB.GetBasicInfoFeed(r.Context(), FeedID)
+	if err != nil {
+		if errors.Is(sql.ErrNoRows, err) {
+			errMsg = fmt.Sprintf("cannot follow feed: %s. No such feed", userReq.FeedID)
+			respondWithError(w, http.StatusNotFound, errMsg)
+			return
+		}
+		errMsg = fmt.Sprintf("cannot follow feed:%s :%v", userReq.FeedID, err)
+		respondWithError(w, http.StatusInternalServerError, errMsg)
+		return
+	}
+	_, err = s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		UserID:    user.ID,
 		FeedID:    userReq.FeedID,
@@ -42,9 +59,19 @@ func (s *stateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user da
 		UpdatedAt: time.Now().UTC(),
 	})
 	if err != nil {
-		errMsg = fmt.Sprintf("cannot follow feed with id: %s, err: %v", userReq.FeedID, err)
+		if err, ok := err.(*pq.Error); ok {
+			// unique key violation https://www.postgresql.org/docs/current/errcodes-appendix.html
+			if err.Code == "23505" {
+				errMsg = fmt.Sprintf("already following feed: %s", userReq.FeedID)
+				respondWithError(w, http.StatusBadRequest, errMsg)
+				return
+			}
+		}
+
+		errMsg = fmt.Sprintf("cannot follow feed: %s, err: %v", userReq.FeedID, err)
 		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
-	respondWithJSON(w, http.StatusOK, feedFollow)
+	pubFeed := dbFeedToPublicFeed(feedsInfo[0]) // use first and only element
+	respondWithJSON(w, http.StatusOK, pubFeed)
 }
