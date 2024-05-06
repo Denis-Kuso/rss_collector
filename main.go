@@ -20,13 +20,20 @@ type stateConfig struct {
 }
 
 const (
-	QUERY_FEED_FOLLOW = "feedFollowID"
 )
 
 func main() {
 	const (
 		PORT string = "PORT"
 		CONN string = "CONN"
+
+		ready = "/readiness"
+		errorEndpoint = "/err"
+		users = "/users"
+		feeds = "/feeds"
+		follow_feeds = "/feed_follows"
+		QUERY_FEED_FOLLOW = "feedFollowID"
+		posts = "/posts"
 	)
 	err := godotenv.Load()
 	if err != nil {
@@ -45,12 +52,6 @@ func main() {
 	dbQueries := database.New(db)
 	state := stateConfig{dbQueries}
 
-	ready := "/readiness"
-	errorEndpoint := "/err"
-	users := "/users"
-	feeds := "/feeds"
-	follow_feeds := "/feed_follows"
-	posts := "/posts"
 	r := chi.NewRouter()
 	apiRouter := chi.NewRouter()
 
