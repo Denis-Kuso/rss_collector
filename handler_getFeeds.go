@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (s *stateConfig) GetFeeds(w http.ResponseWriter, r *http.Request) {
+func (s *StateConfig) GetFeeds(w http.ResponseWriter, r *http.Request) {
 
 	var errMsg string
 	feeds, err := s.DB.GetFeeds(r.Context())

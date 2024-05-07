@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *stateConfig) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user database.User) {
+func (s *StateConfig) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	var errMsg string
 	feedFollows, err := s.DB.GetFeedFollowsForUser(r.Context(), user.ID)

@@ -14,7 +14,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func (s *stateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (s *StateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	type Request struct {
 		Name string `json:"name"`

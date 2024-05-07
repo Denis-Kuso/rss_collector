@@ -1,56 +1,34 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
-	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // importing for side effects
 	"github.com/rs/cors"
-	"log"
-	"net/http"
-	"os"
-	"time"
-)
-
-type stateConfig struct {
-	DB *database.Queries
-}
-
-const (
 )
 
 func main() {
 	const (
-		PORT string = "PORT"
-		CONN string = "CONN"
-
-		ready = "/readiness"
-		errorEndpoint = "/err"
-		users = "/users"
-		feeds = "/feeds"
-		follow_feeds = "/feed_follows"
+		root              = "/"
+		ready             = "/readiness"
+		errorEndpoint     = "/err"
+		users             = "/users"
+		feeds             = "/feeds"
+		follow_feeds      = "/feed_follows"
+		posts             = "/posts"
 		QUERY_FEED_FOLLOW = "feedFollowID"
-		posts = "/posts"
 	)
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Failed loading enviroment.")
+		log.Fatalf("Failed loading enviroment: %v", err)
 	}
-	port := os.Getenv(PORT)
-	dbURL := os.Getenv(CONN)
-	if port == "" || dbURL == "" {
-		log.Fatalf("Environment variables undefined\n")
-	}
-	// Init db
-	db, err := sql.Open("postgres", dbURL)
-	if err := db.Ping(); err != nil {
-		log.Fatalf("db not connected: %v", err)
-	}
-	dbQueries := database.New(db)
-	state := stateConfig{dbQueries}
+	cfg := NewCfg()
 
 	r := chi.NewRouter()
 	apiRouter := chi.NewRouter()
@@ -60,7 +38,7 @@ func main() {
 	// Use default options for now
 	r.Use(cors.Default().Handler)
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	r.Get(root, func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("welcome Gandalf"))
 	})
 	r.Mount("/v1", apiRouter)
@@ -71,24 +49,25 @@ func main() {
 		respondWithError(w, http.StatusInternalServerError, "Internal server error")
 	})
 
-	go worker(dbQueries, 10*time.Second, 3)
-	apiRouter.Post(users, state.CreateUser)
-	apiRouter.Get(users, state.MiddlewareAuth(state.GetUserData))
-	apiRouter.Get(feeds, state.GetFeeds)
-	apiRouter.Post(feeds, state.MiddlewareAuth(state.CreateFeed))
-	apiRouter.Post(follow_feeds, state.MiddlewareAuth(state.FollowFeed))
-	apiRouter.Delete(follow_feeds+"/{"+QUERY_FEED_FOLLOW+"}", state.MiddlewareAuth(state.UnfollowFeed))
-	apiRouter.Get(follow_feeds, state.MiddlewareAuth(state.GetAllFollowedFeeds))
-	apiRouter.Get(posts, state.MiddlewareAuth(state.GetPostsFromUser))
+	go worker(cfg.DB, cfg.WorkOpts.WorkersBreak*time.Second, int(cfg.WorkOpts.NumWorkers))
+
+	apiRouter.Post(users, cfg.CreateUser)
+	apiRouter.Get(users, cfg.MiddlewareAuth(cfg.GetUserData))
+	apiRouter.Get(feeds, cfg.GetFeeds)
+	apiRouter.Post(feeds, cfg.MiddlewareAuth(cfg.CreateFeed))
+	apiRouter.Post(follow_feeds, cfg.MiddlewareAuth(cfg.FollowFeed))
+	apiRouter.Delete(follow_feeds+"/{"+QUERY_FEED_FOLLOW+"}", cfg.MiddlewareAuth(cfg.UnfollowFeed))
+	apiRouter.Get(follow_feeds, cfg.MiddlewareAuth(cfg.GetAllFollowedFeeds))
+	apiRouter.Get(posts, cfg.MiddlewareAuth(cfg.GetPostsFromUser))
 	server := &http.Server{
-		Addr:              ":" + port,
+		Addr:              ":" + cfg.PortNum,
 		ReadHeaderTimeout: 500 * time.Millisecond,
 		ReadTimeout:       500 * time.Millisecond,
 		IdleTimeout:       1000 * time.Millisecond,
 		Handler:           r,
 	}
 
-	log.Printf("Serving on port: %s\n", port)
+	log.Printf("Serving on port: %s\n", cfg.PortNum)
 	server.ListenAndServe()
 }
 

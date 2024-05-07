@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func (s *stateConfig) GetUserData(w http.ResponseWriter, r *http.Request, user database.User) {
+func (s *StateConfig) GetUserData(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	var errMsg string
 	feedFollows, err := s.DB.GetFeedFollowsForUser(r.Context(), user.ID)

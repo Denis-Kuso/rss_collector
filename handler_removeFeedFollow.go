@@ -10,11 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *stateConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (s *StateConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	var errMsg string
 	type response struct {
 		Name string `json:"unfollowedFeed"`
 	}
+	const QUERY_FEED_FOLLOW = "feedFollowID"
 	providedFeedID := chi.URLParam(r, QUERY_FEED_FOLLOW)
 
 	feedID, err := uuid.Parse(providedFeedID)

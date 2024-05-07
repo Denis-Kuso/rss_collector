@@ -14,7 +14,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func (s *stateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (s *StateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	type userRequest struct {
 		FeedID uuid.UUID `json:"feed_id"`
 	}

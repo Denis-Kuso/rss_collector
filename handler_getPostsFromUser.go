@@ -18,7 +18,7 @@ const (
 	MAX_PROVIDED_POSTS  = 100
 )
 
-func (s *stateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user database.User) {
+func (s *StateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	limit := DEFAULT_QUERY_LIMIT
 	var errMsg string
 	desired_limit := r.URL.Query().Get(QUERY_LIMIT)

@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func (s *stateConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (s *StateConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	type userRequest struct {
 		Name string `json:"name"`

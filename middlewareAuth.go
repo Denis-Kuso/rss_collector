@@ -12,7 +12,7 @@ import (
 
 type authenicatedHandler func(w http.ResponseWriter, r *http.Request, user database.User)
 
-func (s *stateConfig) MiddlewareAuth(handler authenicatedHandler) http.HandlerFunc {
+func (s *StateConfig) MiddlewareAuth(handler authenicatedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// Check auth header
