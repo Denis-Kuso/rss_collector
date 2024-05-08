@@ -1,4 +1,4 @@
-module github.com/Denis-Kuso/cli_rss
+module github.com/Denis-Kuso/rss_collector/client
 
 go 1.21.1
 
