@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
+	"github.com/Denis-Kuso/rss_collector/server/internal/database"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )

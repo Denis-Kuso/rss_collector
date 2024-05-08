@@ -1,4 +1,4 @@
-module github.com/Denis-Kuso/rss_aggregator_p
+module github.com/Denis-Kuso/rss_collector/server
 
 go 1.21.1
 

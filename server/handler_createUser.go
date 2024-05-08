@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Denis-Kuso/rss_aggregator_p/internal/database"
-	"github.com/Denis-Kuso/rss_aggregator_p/internal/validate"
+	"github.com/Denis-Kuso/rss_collector/server/internal/database"
+	"github.com/Denis-Kuso/rss_collector/server/internal/validate"
 	"github.com/google/uuid"
 	"io"
 	"log"
