@@ -7,7 +7,7 @@
 *.dll
 *.so
 *.dylib
-/rss_aggregator_p
+server/rss_aggregator_p
 
 # Test binary, built with `go test -c`
 *.test
@@ -22,16 +22,25 @@
 go.work
 
 # references
-TODO.txt
+server/TODO.txt
 references.txt
 
 #environment variables
-.env
+server/.env
+client/.env
 
 # tests http
 curlTest
+<<<<<<< HEAD
 curloutputs
 
 # notes to self
 design_considerations.md
 bugs.md
+testing-doc
+
+# notes to self
+design_considerations.md
+responses.md 
+api-description.md
+notes.md
