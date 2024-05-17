@@ -19,7 +19,7 @@ var getPostsCmd = &cobra.Command{
 	Long: `Retrieve posts from followed feeds. If no feeds followed or no posts
 	are found an empty list is returned`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
+		apiKey, err := ReadApiKey(credentialsFile)
 		if err != nil {
 			return fmt.Errorf("cannot load apikey: %v", err)
 		}

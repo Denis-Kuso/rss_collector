@@ -41,24 +41,34 @@ func init() {
 
 var (
 	// server address
-	API_URL          string
-	DEFAULT_ENV_FILE string = "./.env"
-	cfgFile          string
+	API_URL         string
+	cfgFile         string
+	credentialsFile string
+)
+
+const (
+	DEFAULT_ENV_FILE      string = "./.env"
+	defaultCredentialsLoc string = "./.credentials"
 )
 
 func initConfig() {
-	const keyURL string = "SERVER_URL"
-	if cfgFile != "" {
-		DEFAULT_ENV_FILE = cfgFile
+	const credentialsKey string = "CRED_LOC"
+	const urlKey string = "SERVER_URL"
+	if cfgFile == "" {
+		cfgFile = DEFAULT_ENV_FILE
 	}
-	err := godotenv.Load(DEFAULT_ENV_FILE)
+	err := godotenv.Load(cfgFile)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	API_URL = os.Getenv(keyURL)
+	API_URL = os.Getenv(urlKey)
 	if API_URL == "" {
-		fmt.Printf("No server addres specified: \"%s\"\n", API_URL)
+		fmt.Printf("No server address specified: \"%s\"\n", API_URL)
 		os.Exit(1)
+	}
+	credentialsFile = os.Getenv(credentialsKey)
+	if credentialsFile == "" {
+		credentialsFile = defaultCredentialsLoc
 	}
 }

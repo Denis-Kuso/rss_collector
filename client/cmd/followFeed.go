@@ -24,7 +24,7 @@ as potentialy interesting feeds. By browsing through them, any feed of interest
 	Example: "followFeed c607531a-832a-4b44-9b13-3acd9839d165",
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		apikey, err := ReadApiKey(DEFAULT_ENV_FILE)
+		apikey, err := ReadApiKey(credentialsFile)
 		if err != nil {
 			return fmt.Errorf("cannot read apiKey: %v\n", err)
 		}

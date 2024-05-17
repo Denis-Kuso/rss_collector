@@ -18,7 +18,7 @@ var getUserDataCmd = &cobra.Command{
 	Short: "retrieve user's feeds, username, apikey",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
+		apiKey, err := ReadApiKey(credentialsFile)
 		if err != nil {
 			return fmt.Errorf("cannot load apikey: %v", err)
 		}

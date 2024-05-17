@@ -27,7 +27,7 @@ var addFeedCmd = &cobra.Command{
 	`,
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		apiKey, err := ReadApiKey(DEFAULT_ENV_FILE)
+		apiKey, err := ReadApiKey(credentialsFile)
 		if err != nil {
 			fmt.Fprintf(os.Stdout, "cannot read apiKey: %v", err)
 			os.Exit(5)
