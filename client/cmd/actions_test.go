@@ -86,14 +86,14 @@ func TestGetUserData(t *testing.T) {
 		{
 			name:     "get_user_data",
 			expError: nil,
-			expReq:   e,
+			//expReq:   e,
 			expOut:   `{"ID":"someID","CreatedAt":"someTime","UpdatedAt":"someTime","Name":"testName","ApiKey":"1337"}` + string('\n'),
 			resp:     testResp[GET_USERS_DATA],
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			url, cleanup := mockServer(checkReq(t, tc.expReq, tc))
+			url, cleanup := mockServer(checkReq(t, e, tc))
 			defer cleanup()
 			var out bytes.Buffer
 			log.Printf("calling action with url: %v\n", url)
