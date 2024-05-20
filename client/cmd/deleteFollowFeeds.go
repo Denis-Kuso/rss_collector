@@ -37,7 +37,6 @@ func init() {
 func deleteFollowFeedAction(out io.Writer, rootURL, apiKey, feedFollowID string) error {
 	resp, err := deleteFollowFeed(rootURL, apiKey, feedFollowID)
 	if err != nil {
-		// which errors are possible?
 		return fmt.Errorf("cannot unfollow feed: \"%v\" due to: %v", feedFollowID, err)
 	}
 	_, err = fmt.Fprintf(out, string(resp))

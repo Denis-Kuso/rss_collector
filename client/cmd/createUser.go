@@ -62,7 +62,6 @@ func createUserAction(out io.Writer, base_url, name string, overwrite bool) erro
 	if err != nil {
 		return err
 	}
-	// TODO propagate error for display?
 	err = SaveApiKeyF([]byte(apikey), credentialsFile)
 	return displayUser(out, resp)
 }
@@ -71,15 +70,6 @@ func displayUser(out io.Writer, body []byte) error {
 	// verbose option
 	_, err := fmt.Fprintf(out, string(body))
 	return err
-}
-func createUserF(username, url string) (resp []byte, err error) {
-	ENDPOINT := "/users"
-	url += ENDPOINT
-	data, err := fetchEndpoint(c, url)
-	if err != nil {
-		return nil, fmt.Errorf("ERR: %v, during fetching with url:%v\n", err, url)
-	}
-	return data, nil
 }
 
 func createUser(username, url string) (user []byte, err error) {
@@ -103,6 +93,5 @@ func createUser(username, url string) (user []byte, err error) {
 		fmt.Printf("ERR from sendReq: %v\n", err)
 		os.Exit(1)
 	}
-	// TODO Then what?? process response or pass response forward?
 	return resp, nil
 }

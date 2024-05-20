@@ -40,7 +40,7 @@ func init() {
 func followFeedAction(out io.Writer, feed_id, rootURL, apiKey string) error {
 	resp, err := followFeed(feed_id, rootURL, apiKey)
 	if err != nil {
-		return err //to where?
+		return err
 	}
 	_, err = fmt.Fprint(out, string(resp))
 	return err
@@ -62,7 +62,6 @@ func followFeed(feed_id, url, apiKey string) ([]byte, error) {
 	}
 	resp, err := sendReq(url, http.MethodPost, apiKey, "application/json", http.StatusOK, &body)
 	if err != nil {
-		// TODO add more error granularity
 		fmt.Printf("ERR: %v\n", err)
 		os.Exit(1)
 	}

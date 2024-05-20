@@ -33,23 +33,6 @@ func newClient() *http.Client {
 
 var c *http.Client = newClient()
 
-func fetchEndpoint(c *http.Client, endpoint string) ([]byte, error) {
-
-	req, err := http.NewRequest("POST", endpoint, nil)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %s\n", ErrConnection, err)
-	}
-	fmt.Printf("Sending request with url: %v\n", endpoint)
-	resp, err := c.Do(req)
-	if err != nil {
-		return nil, ErrConnection
-	}
-	defer resp.Body.Close()
-	data, err := io.ReadAll(resp.Body)
-	fmt.Printf("Called url: %v using post,got: %v\n", endpoint, resp.StatusCode)
-	return data, err
-}
-
 func sendReq(url, method, apiKey, contentType string, expStatus int, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
@@ -59,7 +42,7 @@ func sendReq(url, method, apiKey, contentType string, expStatus int, body io.Rea
 		req.Header.Set("Content-Type", contentType)
 	}
 	if apiKey != "" {
-		req.Header.Add("Authorization", "ApiKey "+apiKey) //TODO will default header allow this?
+		req.Header.Add("Authorization", "ApiKey "+apiKey)
 	}
 
 	r, err := newClient().Do(req)
