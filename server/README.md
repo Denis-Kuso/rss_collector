@@ -198,6 +198,7 @@ curl -X POST http://localhost:8080/v1/feeds -H "Authorization: ApiKey 6711c5359a
 curl http://localhost:8080/v1/feeds
 ```
 </details>
+
 ------------------------------------------------------------------------------------------
 
 ## feed_follows
