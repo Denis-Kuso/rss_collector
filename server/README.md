@@ -111,8 +111,8 @@ curl 'http://localhost:8080/v1/users' -H 'Authorization: ApiKey bXkgcHJlY2lvdXM-
 
 > | name              |  type     | data type      | description           |
 > |-------------------|-----------|----------------|-----------------------|
-> | `feed name`       |  required | int ($int64)   | Desired name for feed |
-> | `feed url `       |  required | int ($int64)   | URL of the feed       |
+> | `feed name`       |  required | string         | Desired name for feed |
+> | `feed url `       |  required | string         | URL of the feed       |
 > | `apiKey`          |  required | string         | apiKey used for authentication      |
 
 ```json
