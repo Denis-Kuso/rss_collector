@@ -245,7 +245,7 @@ curl -X POST http://localhost:8080/v1/feed_follows/b410779d-f9b2-436f-a3ef-7e7c3
 </details>
 
 <details>
- <summary><code>GET</code> <code><b>/feed_follows/</b></code> <code>(retrieve all feeds you are following)</code></summary>
+ <summary><code>GET</code> <code><b>/feed_follows</b></code> <code>(retrieve all feeds you are following)</code></summary>
 
 ##### Parameters
 
