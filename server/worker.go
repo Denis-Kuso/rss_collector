@@ -17,10 +17,9 @@ const (
 )
 
 // Periodically:
-// fetch from DB feeds that need fetching (already have function)
+// fetch from DB feeds that need fetching
 // fetch feeds from their URLS (concurently)
 // mark feed as fetched
-// what if time.Duration provided is "too low"?
 func worker(db *database.Queries, interRequestInterval time.Duration, workers int) {
 	fetch_ticker := time.NewTicker(interRequestInterval)
 	for ; ; <-fetch_ticker.C {
