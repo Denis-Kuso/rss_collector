@@ -34,7 +34,7 @@ func init() {
 
 	cobra.OnInitialize(initConfig)
 	msg := fmt.Sprintf("config file (default is %s)", DEFAULT_ENV_FILE)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", msg)
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", msg)
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
