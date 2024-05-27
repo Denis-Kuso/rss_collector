@@ -4,10 +4,10 @@
 |------- | ------------------ | ---------------------------------------------------------------- |
 | POST   | "/users"           | Creates a new user                                               |
 | GET    | "/users"           | Auth: return user's data                                         |
-| POST   | "/feeds"           | Auth: Creates a new feed for user to follow                      |
+| POST   | "/feeds"           | Auth: creates a new feed for user to follow                      |
 | GET    | "/feeds"           | Auth: returns available feeds to follow                          |
-| POST   | "/feed_follows"    | Auth: follow an existing feed                                    |
-| DELETE | "/feed_follows/id" | Auth: unfollows a currently followed feed                        |
+| POST   | "/feed_follows"    | Auth: follows an existing feed                                   |
+| DELETE | "/feed_follows/id" | Auth: unfollows a currently followed feed with the given id      |
 | GET    | "/feed_follows"    | Auth: retrieve all followed feeds                                |
 | GET    | "/posts{?limit}"   | Auth: retrieve default num of posts from followed feeds OR limit |
 
