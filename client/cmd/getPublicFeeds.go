@@ -12,20 +12,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// getPublicFeedsCmd represents the getPublicFeeds command
-var getPublicFeedsCmd = &cobra.Command{
-	Use:   "getPublicFeeds",
-	Short: "Retrieve feeds already available to follow",
+// showCmd represents the getPublicFeeds command
+var showCmd = &cobra.Command{
+	Use:   "show",
+	Short: "Show feeds already available to follow",
 	Long: `If unsure what you might follow or how this tool works, using this command you
 	will get some tech-related feeds which you can follow or use to try the tool.
-	Does not require being a user`,
+	Does not require being a registered user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return getPublicFeedsAction(os.Stdout, API_URL)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(getPublicFeedsCmd)
+	rootCmd.AddCommand(showCmd)
 
 }
 func getPublicFeedsAction(out io.Writer, rootURL string) error {

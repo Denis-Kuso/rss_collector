@@ -12,9 +12,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// getPostsCmd represents the getPosts command
-var getPostsCmd = &cobra.Command{
-	Use:   "getPosts",
+// fetchCmd represents the getPosts command
+var fetchCmd = &cobra.Command{
+	Use:   "fetch",
 	Short: "Retrieve posts from followed feeds",
 	Long: `Retrieve posts from followed feeds. If no feeds followed or no posts
 	are found an empty list is returned`,
@@ -28,7 +28,7 @@ var getPostsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(getPostsCmd)
+	rootCmd.AddCommand(fetchCmd)
 
 }
 func getPostsAction(out io.Writer, rootURL, apiKey, limit string) error {

@@ -12,10 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// getUserDataCmd represents the getUserData command
-var getUserDataCmd = &cobra.Command{
-	Use:   "getUserData",
-	Short: "retrieve user's feeds, username, apikey",
+// infoCmd represents the getUserData command
+var infoCmd = &cobra.Command{
+	Use:   "info",
+	Short: "Retrieve user's feeds, username, apikey",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(credentialsFile)
@@ -27,7 +27,7 @@ var getUserDataCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(getUserDataCmd)
+	rootCmd.AddCommand(infoCmd)
 }
 
 func getUserDataAction(out io.Writer, rootURL, apiKey string) error {

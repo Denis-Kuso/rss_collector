@@ -21,9 +21,9 @@ const (
 	MAX_USERNAME_LENGTH = 35
 )
 
-// createUserCmd represents the createUser command
-var createUserCmd = &cobra.Command{
-	Use:   "createUser <username>",
+// createCmd represents the createUser command
+var createCmd = &cobra.Command{
+	Use:   "create <username>",
 	Short: "Create a new user",
 	Long: `A user needs to be created in order to use this tool.
 	Succesful creation returns a key, enabling automatic login and usage
@@ -31,7 +31,7 @@ var createUserCmd = &cobra.Command{
 	user that the existing key will be overwritten. If this is the desired
 	behaviour and the user wants to retain access to previous the user, the
 	key should be saved in a safe place.`,
-	Example: "  createUser Frodo\nTo replace user:\n  createUser -o Smeagol",
+	Example: "  create Frodo\nTo replace user:\n  create -o Smeagol",
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		overwrite, err := cmd.Flags().GetBool("overwrite")
@@ -44,8 +44,8 @@ var createUserCmd = &cobra.Command{
 
 func init() {
 	var Overwrite bool
-	rootCmd.AddCommand(createUserCmd)
-	createUserCmd.Flags().BoolVarP(&Overwrite, "overwrite", "o", false, "overwrite an existing apikey")
+	rootCmd.AddCommand(createCmd)
+	createCmd.Flags().BoolVarP(&Overwrite, "overwrite", "o", false, "overwrite an existing apikey")
 }
 func createUserAction(out io.Writer, base_url, name string, overwrite bool) error {
 	_, err := ReadApiKey(credentialsFile)

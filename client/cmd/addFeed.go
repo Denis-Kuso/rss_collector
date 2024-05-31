@@ -15,15 +15,15 @@ import (
 )
 
 // addFeedCmd represents the addFeed command
-var addFeedCmd = &cobra.Command{
-	Use:     "addFeed <feedName> <feedUrl>",
+var addCmd = &cobra.Command{
+	Use:     "add <feedName> <feedUrl>",
 	Short:   "Add a feed from which you would like to collect posts",
-	Example: "addFeed 'memes' https://xkcd.com/rss.xml",
+	Example: "add 'memes' https://xkcd.com/rss.xml",
 	Long: `Add a feed which you want to follow and receive posts/podcasts from.
 	To provide a feed name using white space use single or double quotes
 	
 	Example:
-	 addFeed "funny memes" https://xkcd.com/rss.xml
+	 add "funny memes" https://xkcd.com/rss.xml
 	`,
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -37,7 +37,7 @@ var addFeedCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(addFeedCmd)
+	rootCmd.AddCommand(addCmd)
 }
 
 func addFeedAction(out io.Writer, args []string, rooturl, apiKey string) error {

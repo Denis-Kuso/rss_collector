@@ -12,10 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// getFollowedFeedsCmd represents the getFollowedFeeds command
-var getFollowedFeedsCmd = &cobra.Command{
-	Use:   "getFollowedFeeds",
-	Short: "Get all the feeds you are currently following",
+// lsCmd represents the getFollowedFeeds command
+var lsCmd = &cobra.Command{
+	Use:   "ls",
+	Short: "List all the feeds you are currently following",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(credentialsFile)
@@ -27,7 +27,7 @@ var getFollowedFeedsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(getFollowedFeedsCmd)
+	rootCmd.AddCommand(lsCmd)
 }
 
 // TODO
