@@ -15,13 +15,13 @@ import (
 )
 
 // followFeedCmd represents the followFeed command
-var followFeedCmd = &cobra.Command{
-	Use:   "followFeed <feed_id>",
+var followCmd = &cobra.Command{
+	Use:   "follow <feed_id>",
 	Short: "Follow a feed added by someone else",
 	Long: `There might be feeds on the server added by other users or offered
 as potentialy interesting feeds. By browsing through them, any feed of interest
 	can then be followed by using this command with a feed_id.`,
-	Example: "followFeed c607531a-832a-4b44-9b13-3acd9839d165",
+	Example: "follow c607531a-832a-4b44-9b13-3acd9839d165",
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apikey, err := ReadApiKey(credentialsFile)
@@ -33,7 +33,7 @@ as potentialy interesting feeds. By browsing through them, any feed of interest
 }
 
 func init() {
-	rootCmd.AddCommand(followFeedCmd)
+	rootCmd.AddCommand(followCmd)
 
 }
 
