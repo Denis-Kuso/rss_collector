@@ -12,14 +12,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// deleteFollowFeedsCmd represents the deleteFollowFeeds command
-var deleteFollowFeedsCmd = &cobra.Command{
-	Use:   "unfollowFeed <feedID>",
+// rmCmd represents the deleteFollowFeeds command
+var rmCmd = &cobra.Command{
+	Use:   "rm <feedID>",
 	Short: "Stop following a feed",
 	Long: `If you no longer wish to receive posts from a feed, use this command
 	to stop following the feed. FeedID can be obtained by calling getFollowedFeeds,
 	getUserData or getAllFeeds`,
-	Example: "unfollowFeed c607531a-832a-4b44-9b13-3acd9839d165",
+	Example: "rm c607531a-832a-4b44-9b13-3acd9839d165",
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiKey, err := ReadApiKey(credentialsFile)
@@ -31,7 +31,7 @@ var deleteFollowFeedsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(deleteFollowFeedsCmd)
+	rootCmd.AddCommand(rmCmd)
 }
 
 func deleteFollowFeedAction(out io.Writer, rootURL, apiKey, feedFollowID string) error {
