@@ -21,7 +21,13 @@ interesting and only then open a browser to interact with the post.
 
 ## 🚀 Quick Start
 
-### Install using the Go toolchain
+### Choose suitable binary file
+
+In the `client/releases` folder there are platform-specific binaries. Choose one
+that matches your machine, for example, on "apple silicon" machines choose 
+`releases/darwin/arm64/clipr`.
+
+### OR install using the Go toolchain
 
 ```bash
 go install github.com/Denis-Kuso/rss_collector@latest
