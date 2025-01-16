@@ -9,7 +9,7 @@ import (
 )
 
 // setupGeneralRoutes sets up routes that are not part of the API (health check, root, etc.)
-func (cfg *StateConfig) setupRoutes() *chi.Mux {
+func (a *app) setupRoutes() *chi.Mux {
 	// Middleware
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -24,23 +24,23 @@ func (cfg *StateConfig) setupRoutes() *chi.Mux {
 		w.Write([]byte("ok!"))
 	})
 
-	r.Mount("/v1", cfg.apiRouter())
+	r.Mount("/v1", a.apiRouter())
 
 	return r
 }
 
 // apiRouter sets up the API routes
-func (cfg *StateConfig) apiRouter() chi.Router {
+func (a *app) apiRouter() chi.Router {
 	apiRouter := chi.NewRouter()
 
-	apiRouter.Post("/users", cfg.CreateUser)
-	apiRouter.Get("/users", cfg.MiddlewareAuth(cfg.GetUserData))
-	apiRouter.Get("/feeds", cfg.GetFeeds)
-	apiRouter.Post("/feeds", cfg.MiddlewareAuth(cfg.CreateFeed))
-	apiRouter.Post("/feed_follows", cfg.MiddlewareAuth(cfg.FollowFeed))
-	apiRouter.Delete("/feed_follows/{feedFollowID}", cfg.MiddlewareAuth(cfg.UnfollowFeed))
-	apiRouter.Get("/feed_follows", cfg.MiddlewareAuth(cfg.GetAllFollowedFeeds))
-	apiRouter.Get("/posts", cfg.MiddlewareAuth(cfg.GetPostsFromUser))
+	apiRouter.Post("/users", a.CreateUser)
+	apiRouter.Get("/users", a.MiddlewareAuth(a.GetUserData))
+	apiRouter.Get("/feeds", a.GetFeeds)
+	apiRouter.Post("/feeds", a.MiddlewareAuth(a.CreateFeed))
+	apiRouter.Post("/feed_follows", a.MiddlewareAuth(a.FollowFeed))
+	apiRouter.Delete("/feed_follows/{feedFollowID}", a.MiddlewareAuth(a.UnfollowFeed))
+	apiRouter.Get("/feed_follows", a.MiddlewareAuth(a.GetAllFollowedFeeds))
+	apiRouter.Get("/posts", a.MiddlewareAuth(a.GetPostsFromUser))
 
 	return apiRouter
 }

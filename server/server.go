@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,15 +12,15 @@ import (
 	"time"
 )
 
-func (s *StateConfig) serve() error {
+func (a *app) serve() error {
 	server := &http.Server{
-		Addr:              ":" + s.PortNum,
+		Addr:              fmt.Sprintf(":%d", a.cfg.port),
 		ReadHeaderTimeout: 500 * time.Millisecond,
 		ReadTimeout:       500 * time.Millisecond,
 		IdleTimeout:       1000 * time.Millisecond,
-		Handler:           s.setupRoutes(),
+		Handler:           a.setupRoutes(),
 	}
-	go worker(s.DB, s.WorkOpts.WorkersBreak*time.Second, int(s.WorkOpts.NumWorkers))
+	go worker(a.db, time.Duration(a.cfg.fetch.reqInterval), 3) // TODO unused param
 	shutdownErr := make(chan error)
 	go func() {
 		quit := make(chan os.Signal, 1) // unbuffered chanel might not receive
@@ -31,7 +32,7 @@ func (s *StateConfig) serve() error {
 		defer cancel()
 		shutdownErr <- server.Shutdown(ctx)
 	}()
-	log.Printf("Serving on port: %s\n", s.PortNum)
+	log.Printf("Serving on port: %v\n", a.cfg.port)
 	err := server.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
 		return err

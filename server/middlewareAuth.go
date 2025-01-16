@@ -12,7 +12,7 @@ import (
 
 type authenicatedHandler func(w http.ResponseWriter, r *http.Request, user database.User)
 
-func (s *StateConfig) MiddlewareAuth(handler authenicatedHandler) http.HandlerFunc {
+func (a *app) MiddlewareAuth(handler authenicatedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// Check auth header
@@ -30,7 +30,7 @@ func (s *StateConfig) MiddlewareAuth(handler authenicatedHandler) http.HandlerFu
 				return
 			}
 		}
-		user, err := s.DB.GetUserByAPIKey(r.Context(), apiKey)
+		user, err := a.db.GetUserByAPIKey(r.Context(), apiKey)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				msg = fmt.Sprintf("no user with apiKey: %s", apiKey)

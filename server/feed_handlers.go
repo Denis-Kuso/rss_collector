@@ -17,7 +17,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func (s *StateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	type Request struct {
 		Name string `json:"name"`
@@ -54,7 +54,7 @@ func (s *StateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		return
 	}
 
-	feed, err := s.DB.CreateFeed(r.Context(), database.CreateFeedParams{
+	feed, err := a.db.CreateFeed(r.Context(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -76,7 +76,7 @@ func (s *StateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
-	_, err = s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+	_, err = a.db.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -94,7 +94,7 @@ func (s *StateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 	return
 }
 
-func (s *StateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	type userRequest struct {
 		FeedID uuid.UUID `json:"feed_id"`
 	}
@@ -120,7 +120,7 @@ func (s *StateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user da
 	}
 	FeedID := []uuid.UUID{userReq.FeedID}
 	// does desired feed even exist?
-	feedsInfo, err := s.DB.GetBasicInfoFeed(r.Context(), FeedID)
+	feedsInfo, err := a.db.GetBasicInfoFeed(r.Context(), FeedID)
 	if err != nil {
 		if errors.Is(sql.ErrNoRows, err) {
 			errMsg = fmt.Sprintf("cannot follow feed: %s. No such feed", userReq.FeedID)
@@ -131,7 +131,7 @@ func (s *StateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user da
 		respondWithError(w, http.StatusInternalServerError, errMsg)
 		return
 	}
-	_, err = s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+	_, err = a.db.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		UserID:    user.ID,
 		FeedID:    userReq.FeedID,
@@ -156,10 +156,10 @@ func (s *StateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user da
 	respondWithJSON(w, http.StatusOK, pubFeed)
 }
 
-func (s *StateConfig) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	var errMsg string
-	feedFollows, err := s.DB.GetFeedFollowsForUser(r.Context(), user.ID)
+	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), user.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			errMsg = fmt.Sprintf("no followed feeds found")
@@ -174,7 +174,7 @@ func (s *StateConfig) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request
 	for i, f := range feedFollows {
 		feedIDs[i] = f.FeedID
 	}
-	feeds, err := s.DB.GetBasicInfoFeed(r.Context(), feedIDs)
+	feeds, err := a.db.GetBasicInfoFeed(r.Context(), feedIDs)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			errMsg := fmt.Sprintf("cannot retrieve info about feeds: %s", err)
@@ -187,10 +187,10 @@ func (s *StateConfig) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request
 	return
 }
 
-func (s *StateConfig) GetFeeds(w http.ResponseWriter, r *http.Request) {
+func (a *app) GetFeeds(w http.ResponseWriter, r *http.Request) {
 
 	var errMsg string
-	feeds, err := s.DB.GetFeeds(r.Context())
+	feeds, err := a.db.GetFeeds(r.Context())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			errMsg = "no feeds found"
@@ -207,7 +207,7 @@ func (s *StateConfig) GetFeeds(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (s *StateConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	var errMsg string
 	type response struct {
 		Name string `json:"unfollowedFeed"`
@@ -223,7 +223,7 @@ func (s *StateConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request, user 
 		return
 	}
 
-	err = s.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
+	err = a.db.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
 		FeedID: feedID,
 		UserID: user.ID,
 	})

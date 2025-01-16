@@ -22,7 +22,7 @@ const (
 	MAX_PROVIDED_POSTS  = 100
 )
 
-func (s *StateConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	type userRequest struct {
 		Name string `json:"name"`
@@ -53,7 +53,7 @@ func (s *StateConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.DB.CreateUser(r.Context(), database.CreateUserParams{
+	user, err := a.db.CreateUser(r.Context(), database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -72,7 +72,7 @@ func (s *StateConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (s *StateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	limit := DEFAULT_QUERY_LIMIT
 	var errMsg string
 	desired_limit := r.URL.Query().Get(QUERY_LIMIT)
@@ -89,7 +89,7 @@ func (s *StateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, u
 			limit = desired_limit_I
 		}
 	}
-	posts, err := s.DB.GetPostsFromUser(r.Context(), database.GetPostsFromUserParams{
+	posts, err := a.db.GetPostsFromUser(r.Context(), database.GetPostsFromUserParams{
 		UserID: user.ID,
 		Limit:  int32(limit),
 	})
@@ -110,7 +110,7 @@ func (s *StateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, u
 	feeds := make([]database.Feed, SIZE)
 	for i, p := range posts {
 		feedID[FIRST] = p.FeedID
-		feed, err := s.DB.GetBasicInfoFeed(r.Context(), feedID)
+		feed, err := a.db.GetBasicInfoFeed(r.Context(), feedID)
 		if err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
 				errMsg = fmt.Sprintf("cannot retrieve info. Feed id: %v, err:%v", feedID, err)
@@ -125,10 +125,10 @@ func (s *StateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, u
 	respondWithJSON(w, http.StatusOK, publicPosts)
 }
 
-func (s *StateConfig) GetUserData(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetUserData(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	var errMsg string
-	feedFollows, err := s.DB.GetFeedFollowsForUser(r.Context(), user.ID)
+	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), user.ID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			errMsg = fmt.Sprintf("err retrieving feed follows: %v", err)
@@ -142,7 +142,7 @@ func (s *StateConfig) GetUserData(w http.ResponseWriter, r *http.Request, user d
 		feedIDs[i] = f.FeedID
 	}
 	feeds := make([]database.Feed, SIZE)
-	feeds, err = s.DB.GetBasicInfoFeed(r.Context(), feedIDs)
+	feeds, err = a.db.GetBasicInfoFeed(r.Context(), feedIDs)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			errMsg = fmt.Sprintf("cannot retrieve feed info: %v", err)
