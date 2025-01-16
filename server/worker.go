@@ -20,7 +20,7 @@ const (
 // fetch from DB feeds that need fetching
 // fetch feeds from their URLS (concurently)
 // mark feed as fetched
-func worker(db *database.Queries, interRequestInterval time.Duration, workers int) {
+func worker(db *database.Queries, interRequestInterval time.Duration) {
 	fetch_ticker := time.NewTicker(interRequestInterval)
 	for ; ; <-fetch_ticker.C {
 		// fetch from DB
