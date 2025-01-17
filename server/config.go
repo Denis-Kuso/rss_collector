@@ -10,6 +10,11 @@ import (
 	"github.com/Denis-Kuso/rss_collector/server/internal/database"
 )
 
+var (
+	version     string
+	showVersion bool
+)
+
 type config struct {
 	port int
 	env  string // or int
@@ -38,6 +43,7 @@ func newConfig() config {
 	flag.UintVar(&cfg.fetch.reqInterval, "req", 100, "request interval in seconds")
 	// no default DSN val for DB --> supply from ENV or flag
 	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "PostgreSQL DSN")
+	flag.BoolVar(&showVersion, "version", false, "show version")
 	// TODO add config options for DB
 	flag.Parse()
 	return cfg

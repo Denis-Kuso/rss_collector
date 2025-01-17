@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -12,6 +13,10 @@ func main() {
 	// TODO will modify/enrich
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	c := newConfig()
+	if showVersion {
+		fmt.Printf("Version:\t%s\n", version)
+		os.Exit(0)
+	}
 	db, err := openDB(c)
 	defer db.Close()
 	if err != nil {
