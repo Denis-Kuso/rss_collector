@@ -20,12 +20,14 @@ func (a *app) serve() error {
 		IdleTimeout:       1000 * time.Millisecond,
 		Handler:           a.setupRoutes(),
 	}
-	go worker(a.db, time.Duration(a.cfg.fetch.reqInterval)*time.Second)
+	done := make(chan struct{})
+	go worker(done, a.db, time.Duration(a.cfg.fetch.reqInterval)*time.Second)
 	shutdownErr := make(chan error)
 	go func() {
 		quit := make(chan os.Signal, 1) // unbuffered chanel might not receive
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 		s := <-quit
+		close(done)
 		log.Printf("Shutting down server: %s", s.String())
 		const gracePeriod time.Duration = 10 * time.Second
 		ctx, cancel := context.WithTimeout(context.Background(), gracePeriod)

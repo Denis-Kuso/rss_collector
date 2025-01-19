@@ -20,25 +20,40 @@ const (
 // fetch from DB feeds that need fetching
 // fetch feeds from their URLS (concurently)
 // mark feed as fetched
-func worker(db *database.Queries, interRequestInterval time.Duration) {
-	fetch_ticker := time.NewTicker(interRequestInterval)
-	for ; ; <-fetch_ticker.C {
-		// fetch from DB
-		feeds, err := db.GetNextFeedsToFetch(context.Background(), FEEDS_TO_FETCH)
-		if err != nil {
-			log.Printf("ERR: %v durring retrieval of feeds from db\n", err)
+func worker(done <-chan struct{}, db *database.Queries, interRequestInterval time.Duration) {
+	fetchTicker := time.NewTicker(interRequestInterval)
+	defer fetchTicker.Stop()
+	var wg sync.WaitGroup
+	for {
+		select {
+		case <-fetchTicker.C:
+			feeds, err := db.GetNextFeedsToFetch(context.Background(), FEEDS_TO_FETCH)
+			if err != nil {
+				log.Printf("ERR: %v durring retrieval of feeds from db\n", err)
+				continue
+			}
+			for _, feed := range feeds {
+				wg.Add(1)
+				go func(f database.Feed) {
+					//
+					defer wg.Done()
+					defer func(cf database.Feed) {
+						if r := recover(); r != nil {
+							log.Printf("recovery from panic: %v, processing feed: %v\n", r, cf)
+						}
+					}(f)
+					processFeed(db, f)
+				}(feed)
+			}
+		case <-done: // server initiatied shutdown
+			wg.Wait()
+			log.Println("INFO: all gorutines finished, worker terminating")
+			return
 		}
-		var wg sync.WaitGroup
-		for _, feed := range feeds {
-			wg.Add(1)
-			go processFeed(db, &wg, feed)
-		}
-		wg.Wait()
 	}
 }
 
-func processFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
-	defer wg.Done()
+func processFeed(db *database.Queries, feed database.Feed) {
 	_, err := db.MarkFeedFetched(context.Background(), feed.ID)
 	if err != nil {
 		log.Printf("Cannot't make feed %s fetched: %v\n", feed.Name, err)
