@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"log"
 	"time"
 
 	"github.com/Denis-Kuso/rss_collector/server/internal/database"
@@ -25,9 +24,8 @@ type config struct {
 }
 
 type app struct {
-	cfg    config
-	logger *log.Logger
-	db     *database.Queries
+	cfg config
+	db  *database.Queries
 }
 
 type fetchParams struct {

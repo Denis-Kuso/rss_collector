@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/Denis-Kuso/rss_collector/server/internal/database"
@@ -10,8 +10,9 @@ import (
 )
 
 func main() {
-	// TODO will modify/enrich
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	logger := slog.NewJSONHandler(os.Stdout, nil)
+	noviLoger := slog.New(logger)
+	slog.SetDefault(noviLoger)
 	c := newConfig()
 	if showVersion {
 		fmt.Printf("Version:\t%s\n", version)
@@ -20,16 +21,17 @@ func main() {
 	db, err := openDB(c)
 	defer db.Close()
 	if err != nil {
-		logger.Fatalf("cannot start db pool: %v", err)
+		slog.Warn("cannot start db pool", "error", err, "dsn", c.db.dsn)
+		os.Exit(1)
 	}
 	dQueries := database.New(db)
 	a := app{
-		cfg:    c,
-		logger: logger,
-		db:     dQueries,
+		cfg: c,
+		db:  dQueries,
 	}
 	err = a.serve()
 	if err != nil {
-		logger.Fatal(err)
+		slog.Warn("server shutdown failure", "error", err)
+		os.Exit(1)
 	}
 }

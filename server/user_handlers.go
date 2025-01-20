@@ -36,6 +36,7 @@ func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	userReq := userRequest{}
 	err = json.Unmarshal(data, &userReq)
+	// TODO create custom JSON messages
 	if err != nil {
 		if jsonErr, ok := err.(*json.SyntaxError); ok {
 			errMsg = fmt.Sprintf("cannot parse json, err occured at byte:%d", jsonErr.Offset)
@@ -60,12 +61,10 @@ func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Name:      userReq.Name,
 	})
 	if err != nil {
-		errMsg = fmt.Sprintf("cannot create user: %s", userReq.Name)
-		log.Printf("%s, err: %v", errMsg, err)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("cannot create user: %v: %v", userReq.Name, err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
-	log.Printf("Created user: %v\n", user)
 
 	publicUser := dbUserToPublicUser(user, make([]database.Feed, 0)) // no feeds for a new user
 	respondWithJSON(w, http.StatusOK, publicUser)
@@ -99,9 +98,8 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user data
 			respondWithJSON(w, http.StatusOK, errMsg)
 			return
 		}
-		errMsg = "could not retrieve posts"
-		log.Printf("%s; key: %s; err: %v\n", errMsg, user.ApiKey, err)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("cannot retrieve posts: %v", err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
 	SIZE := len(posts)
@@ -113,8 +111,8 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user data
 		feed, err := a.db.GetBasicInfoFeed(r.Context(), feedID)
 		if err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
-				errMsg = fmt.Sprintf("cannot retrieve info. Feed id: %v, err:%v", feedID, err)
-				respondWithError(w, http.StatusInternalServerError, errMsg)
+				err = fmt.Errorf("cannot retrieve feed info: %q: %v", p.FeedID, err)
+				a.serverErrorResponse(w, r, err)
 				return
 			}
 			continue
@@ -127,12 +125,11 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user data
 
 func (a *app) GetUserData(w http.ResponseWriter, r *http.Request, user database.User) {
 
-	var errMsg string
 	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), user.ID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			errMsg = fmt.Sprintf("err retrieving feed follows: %v", err)
-			respondWithError(w, http.StatusInternalServerError, errMsg)
+			err = fmt.Errorf("cannot retrieve user info: %q: %v", user.ID, err)
+			a.serverErrorResponse(w, r, err)
 			return
 		}
 	}
@@ -145,8 +142,8 @@ func (a *app) GetUserData(w http.ResponseWriter, r *http.Request, user database.
 	feeds, err = a.db.GetBasicInfoFeed(r.Context(), feedIDs)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			errMsg = fmt.Sprintf("cannot retrieve feed info: %v", err)
-			respondWithError(w, http.StatusInternalServerError, errMsg)
+			fmt.Errorf("cannot retrieve feed info: %v", err)
+			a.serverErrorResponse(w, r, err)
 			return
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,6 +20,7 @@ func (a *app) serve() error {
 		ReadTimeout:       500 * time.Millisecond,
 		IdleTimeout:       1000 * time.Millisecond,
 		Handler:           a.setupRoutes(),
+		ErrorLog:          log.Default(), // TODO replace with custom logger
 	}
 	done := make(chan struct{})
 	go worker(done, a.db, time.Duration(a.cfg.fetch.reqInterval)*time.Second)
@@ -28,13 +30,13 @@ func (a *app) serve() error {
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 		s := <-quit
 		close(done)
-		log.Printf("Shutting down server: %s", s.String())
+		slog.Info("server shutdown started", "signal", s.String())
 		const gracePeriod time.Duration = 10 * time.Second
 		ctx, cancel := context.WithTimeout(context.Background(), gracePeriod)
 		defer cancel()
 		shutdownErr <- server.Shutdown(ctx)
 	}()
-	log.Printf("Serving on port: %v\n", a.cfg.port)
+	slog.Info("starting server", slog.Group("properties", slog.Int("port", a.cfg.port), slog.String("env", a.cfg.env)))
 	err := server.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
 		return err
@@ -43,6 +45,6 @@ func (a *app) serve() error {
 	if err != nil { // if shutdown fails
 		return err
 	}
-	log.Printf("server stopped")
+	slog.Info("server stopped")
 	return nil
 }

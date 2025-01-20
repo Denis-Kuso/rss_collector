@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -29,7 +30,7 @@ func worker(done <-chan struct{}, db *database.Queries, interRequestInterval tim
 		case <-fetchTicker.C:
 			feeds, err := db.GetNextFeedsToFetch(context.Background(), FEEDS_TO_FETCH)
 			if err != nil {
-				log.Printf("ERR: %v durring retrieval of feeds from db\n", err)
+				slog.Error("cannot retrieve feeds", "error", err)
 				continue
 			}
 			for _, feed := range feeds {
@@ -39,7 +40,7 @@ func worker(done <-chan struct{}, db *database.Queries, interRequestInterval tim
 					defer wg.Done()
 					defer func(cf database.Feed) {
 						if r := recover(); r != nil {
-							log.Printf("recovery from panic: %v, processing feed: %v\n", r, cf)
+							slog.Warn("panic recovered: %v", "error", r)
 						}
 					}(f)
 					processFeed(db, f)
@@ -47,7 +48,7 @@ func worker(done <-chan struct{}, db *database.Queries, interRequestInterval tim
 			}
 		case <-done: // server initiatied shutdown
 			wg.Wait()
-			log.Println("INFO: all gorutines finished, worker terminating")
+			slog.Info("worker stopped")
 			return
 		}
 	}
