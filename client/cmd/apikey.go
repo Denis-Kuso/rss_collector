@@ -15,21 +15,21 @@ const APIKEY string = "APIKEY"
 // example {"name":"user", "apiKey": "1337"}
 // return "1337"
 // I could return []bytes as well
-func ExtractApiKey(body []byte) (string, error) {
+func ExtractAPIKey(body []byte) (string, error) {
 	type resp struct {
-		ApiKey string `json:"ApiKey"`
+		APIKey string `json:"ApiKey"`
 	}
 	var apiKey string
 	r := resp{}
 	err := json.Unmarshal(body, &r)
 	if err != nil {
-		return apiKey, fmt.Errorf("cannot extract ApiKey: %w", err)
+		return apiKey, fmt.Errorf("cannot extract APIKey: %w", err)
 	}
-	return r.ApiKey, nil
+	return r.APIKey, nil
 }
 
 // reads apikey from filename
-func ReadApiKey(filename string) (string, error) {
+func ReadAPIKey(filename string) (string, error) {
 	envKeys, err := godotenv.Read(filename)
 	if err != nil {
 		return "", fmt.Errorf("failed loading env file: %s, %w", filename, err)
@@ -42,14 +42,14 @@ func ReadApiKey(filename string) (string, error) {
 }
 
 // less flexible option of saving
-func SaveApiKeyF(apiKey []byte, destName string) error {
+func SaveAPIKeyF(apiKey []byte, destName string) error {
 	data := []byte(fmt.Sprintf("%s=%s", APIKEY, apiKey))
 	err := os.WriteFile(destName, data, 0666)
 	return err
 }
 
 // saves apiKey to disk
-func SaveApiKey(apiKey []byte, out io.Writer) error {
+func SaveAPIKey(apiKey []byte, out io.Writer) error {
 	prefix := []byte(APIKEY + "=")
 	prefix = append(prefix, apiKey...)
 	n, err := out.Write(prefix)

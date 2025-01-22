@@ -50,7 +50,7 @@ func sendReq(url, method, apiKey, contentType string, expStatus int, body io.Rea
 	defer r.Body.Close()
 	msg, err := io.ReadAll(r.Body)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot read body: %w\n", err)
+		return nil, fmt.Errorf("cannot read body: %w", err)
 	}
 	if r.StatusCode != expStatus {
 		err = ErrInvalidResponse

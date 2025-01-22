@@ -19,7 +19,7 @@ var rmCmd = &cobra.Command{
 	Example: "rm c607531a-832a-4b44-9b13-3acd9839d165",
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		apiKey, err := ReadApiKey(credentialsFile)
+		apiKey, err := ReadAPIKey(credentialsFile)
 		if err != nil {
 			return fmt.Errorf("cannot load apikey: %v", err)
 		}

@@ -5,7 +5,7 @@ COMMIT_HASH = $(shell git rev-parse --short HEAD)
 PACKAGE_CLIENT = "github.com/Denis-Kuso/rss_collector/client"
 VERSION = "0.1.0"
 # Linker flags
-LD_FLAGS = "-s -w -X '$(PACKAGE_CLIENT)/cmd.Version=$(VERSION)' -X '$(PACKAGE_CLIENT)/cmd.Commit=$(COMMIT_HASH)'"
+LD_FLAGS = "-s -w -X '$(PACKAGE_CLIENT)/cmd.version=$(VERSION)' -X '$(PACKAGE_CLIENT)/cmd.commit=$(COMMIT_HASH)'"
 STATIC = 0
 
 build:

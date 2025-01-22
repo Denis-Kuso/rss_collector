@@ -11,12 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var username string
-
-const (
-	MAX_USERNAME_LENGTH = 35
-)
-
 // createCmd represents the createUser command
 var createCmd = &cobra.Command{
 	Use:   "create <username>",
@@ -43,22 +37,22 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 	createCmd.Flags().BoolVarP(&Overwrite, "overwrite", "o", false, "overwrite an existing apikey")
 }
-func createUserAction(out io.Writer, base_url, name string, overwrite bool) error {
-	_, err := ReadApiKey(credentialsFile)
+func createUserAction(out io.Writer, baseURL, name string, overwrite bool) error {
+	_, err := ReadAPIKey(credentialsFile)
 	// user already exists
 	if err == nil && !overwrite {
 		return fmt.Errorf("a user already exists. Use -o flag if you would like to overwrite current user")
 	}
 
-	resp, err := createUser(name, base_url)
+	resp, err := createUser(name, baseURL)
 	if err != nil {
 		return err
 	}
-	apikey, err := ExtractApiKey(resp)
+	apikey, err := ExtractAPIKey(resp)
 	if err != nil {
 		return err
 	}
-	err = SaveApiKeyF([]byte(apikey), credentialsFile)
+	err = SaveAPIKeyF([]byte(apikey), credentialsFile)
 	return displayUser(out, resp)
 }
 

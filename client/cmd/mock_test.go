@@ -6,16 +6,16 @@ import (
 )
 
 const (
-	CREATE_USER_SUCCESS = iota
-	GET_USERS_DATA
-	CREATE_FEED_SUCCESS
-	GET_FEEDS
-	GET_FEEDS_NOT_FOUND
-	FOLLOW_EXISTING_FEED
-	DELETE_FOLLOW_FEED
-	ALL_POSTS
-	MALFORMERD_REQUEST
-	NOT_FOUND
+	createUserSuccess = iota
+	getUsersData
+	createFeedSuccess
+	getFeeds
+	getFeedsNoutFound
+	followExistingFeed
+	deleteFollowedFeed
+	allPosts
+	malformedRequest
+	notFound
 )
 
 // all responses accounted for?
@@ -24,51 +24,51 @@ var testResp = map[int]struct {
 	Status int
 	Body   string
 }{
-	CREATE_USER_SUCCESS: {
+	createUserSuccess: {
 		Status: http.StatusOK,
 		Body:   `{"name":"Frodo","apikey":"bXkgcHJlY2lvdXM-aXRzLW1pbmU-bXkgZGVhciBnYW5kYWxm"}`},
 
-	CREATE_FEED_SUCCESS: {
+	createFeedSuccess: {
 		Status: http.StatusOK,
 		Body:   `{"name":"Blog on basting","url":"www.kitchen-baste.com/xml","id":"f3ffd9ef-69bd-4f28-9cee-3c6cbbfacb3e"}`},
 
-	GET_FEEDS: {
+	getFeeds: {
 		Status: http.StatusOK,
 		Body: `[
 	{"name":"Blog on basting","url":"www.kitchen-baste.com/xml","id":"f3ffd9ef-69bd-4f28-9cee-3c6cbbfacb3e"},{"name":"Blog on compression","url":"www.techsavy.com/xml","id":"1eb60252-3712-4263-bdca-de7a3b6825e2"}
 	]`},
 
-	GET_FEEDS_NOT_FOUND: {
+	getFeedsNoutFound: {
 		Status: http.StatusNotFound,
 		Body:   `{}`},
 
-	FOLLOW_EXISTING_FEED: {
+	followExistingFeed: {
 		Status: http.StatusOK,
 		Body:   `{"name":"Blog on compression","url":"www.techsavy.com/xml","id":"1eb60252-3712-4263-bdca-de7a3b6825e2"}`,
 	},
 
-	GET_USERS_DATA: {
+	getUsersData: {
 		Status: http.StatusOK,
 		Body: `{"name":"Frodo","apikey":"bXkgcHJlY2lvdXM-aXRzLW1pbmU-bXkgZGVhciBnYW5kYWxm", "followedFeeds":[
 	{"name":"Blog on basting","url":"www.kitchen-baste.com/xml","id":"f3ffd9ef-69bd-4f28-9cee-3c6cbbfacb3e"},{"name":"Blog on compression","url":"www.techsavy.com/xml","id":"1eb60252-3712-4263-bdca-de7a3b6825e2"}]}`,
 	},
 
-	DELETE_FOLLOW_FEED: {
+	deleteFollowedFeed: {
 		Status: http.StatusOK,
 		Body:   `{"Unfollowed feed"}`,
 	},
 
-	NOT_FOUND: {
+	notFound: {
 		Status: http.StatusNotFound,
 		Body:   "404 - not found",
 	},
 
-	MALFORMERD_REQUEST: {
+	malformedRequest: {
 		Status: http.StatusBadRequest,
 		Body:   "",
 	},
 
-	ALL_POSTS: {
+	allPosts: {
 		Status: http.StatusOK,
 		Body: `[{"feedName":"XKCD",
 			"title": "Research Account",

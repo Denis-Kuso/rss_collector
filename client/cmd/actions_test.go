@@ -14,7 +14,7 @@ import (
 type ExpReq struct {
 	ExpContentType string
 	ExpBody        string
-	ExpUrlPath     string
+	ExpURLPath     string
 	ExpAuthMethod  string
 	ExpHTTPMethod  string
 }
@@ -41,8 +41,8 @@ type TestCase struct {
 
 func checkReq(t *testing.T, e ExpReq, tc TestCase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != (e.ExpUrlPath) {
-			t.Errorf("Poor request! Expected path: %q, got: %q", e.ExpUrlPath, r.URL.Path)
+		if r.URL.Path != (e.ExpURLPath) {
+			t.Errorf("Poor request! Expected path: %q, got: %q", e.ExpURLPath, r.URL.Path)
 		}
 		if r.Method != e.ExpHTTPMethod {
 			t.Errorf("Poor request! Expected method: %q, got: %q", e.ExpHTTPMethod, r.Method)
@@ -74,19 +74,19 @@ func checkReq(t *testing.T, e ExpReq, tc TestCase) http.HandlerFunc {
 }
 func TestGetUserData(t *testing.T) {
 	e := ExpReq{
-		ExpUrlPath:     "/users",
+		ExpURLPath:     "/users",
 		ExpHTTPMethod:  http.MethodGet,
 		ExpAuthMethod:  "ApiKey",
 		ExpContentType: "",
 		ExpBody:        "",
 	}
-	ApiKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
+	APIKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
 	testCases := []TestCase{
 		{
 			name:     "get_user_data",
 			expError: nil,
 			expOut:   `{"ID":"someID","CreatedAt":"someTime","UpdatedAt":"someTime","Name":"testName","ApiKey":"1337"}` + string('\n'),
-			resp:     testResp[GET_USERS_DATA],
+			resp:     testResp[getUsersData],
 		},
 	}
 	for _, tc := range testCases {
@@ -95,7 +95,7 @@ func TestGetUserData(t *testing.T) {
 			defer cleanup()
 			var out bytes.Buffer
 			log.Printf("calling action with url: %v\n", url)
-			err := getUserDataAction(&out, url, ApiKey)
+			err := getUserDataAction(&out, url, APIKey)
 			if err != nil {
 				if tc.expError == nil {
 					t.Fatalf("Expected no error, got: %q.\n", err)
@@ -114,13 +114,13 @@ func TestGetUserData(t *testing.T) {
 
 func TestGetPosts(t *testing.T) {
 	e := ExpReq{
-		ExpUrlPath:     "/posts",
+		ExpURLPath:     "/posts",
 		ExpHTTPMethod:  http.MethodGet,
 		ExpAuthMethod:  "ApiKey", // TODO perhaps use const or enum
 		ExpContentType: "",
 		ExpBody:        "",
 	}
-	ApiKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
+	APIKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
 	testCases := []TestCase{
 		{
 			name:     "get posts - no limit provided",
@@ -136,7 +136,7 @@ func TestGetPosts(t *testing.T) {
 				"PublishedAt":"Sometime",
 				"FeedID":"someID"
 				}]` + string('\n'),
-			resp: testResp[ALL_POSTS],
+			resp: testResp[allPosts],
 		},
 		{
 			name:     "get posts - limit provided",
@@ -152,7 +152,7 @@ func TestGetPosts(t *testing.T) {
 				"PublishedAt":"Sometime",
 				"FeedID":"someID"
 				}]` + string('\n'),
-			resp: testResp[ALL_POSTS],
+			resp: testResp[allPosts],
 		},
 	}
 	for _, tc := range testCases {
@@ -160,7 +160,7 @@ func TestGetPosts(t *testing.T) {
 			url, cleanup := mockServer(checkReq(t, e, tc))
 			defer cleanup()
 			var out bytes.Buffer
-			err := getPostsAction(&out, url, ApiKey, tc.limit)
+			err := getPostsAction(&out, url, APIKey, tc.limit)
 			if err != nil {
 				if tc.expError == nil {
 					t.Fatalf("Expected no error, got: %q.\n", err)
@@ -179,20 +179,20 @@ func TestGetPosts(t *testing.T) {
 
 func TestDeleteFeedFollow(t *testing.T) {
 	e := ExpReq{
-		ExpUrlPath:     "/feed_follows/",
+		ExpURLPath:     "/feed_follows/",
 		ExpHTTPMethod:  http.MethodDelete,
 		ExpAuthMethod:  "ApiKey", // TODO perhaps use const or enum
 		ExpContentType: "",
 		ExpBody:        "",
 	}
-	ApiKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
+	APIKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
 	testCases := []TestCase{
 		{
 			name:     "delete existing feed_follow",
 			feedID:   "1337",
 			expError: nil,
 			expOut:   `{"Unfollowed feed"}` + string('\n'),
-			resp:     testResp[DELETE_FOLLOW_FEED],
+			resp:     testResp[deleteFollowedFeed],
 		},
 	}
 	for _, tc := range testCases {
@@ -202,7 +202,7 @@ func TestDeleteFeedFollow(t *testing.T) {
 			fmt.Print("Testing")
 			fmt.Println(url)
 			var out bytes.Buffer
-			err := deleteFollowFeedAction(&out, url, ApiKey, tc.feedID)
+			err := deleteFollowFeedAction(&out, url, APIKey, tc.feedID)
 			if err != nil {
 				if tc.expError == nil {
 					t.Fatalf("Expected no error, got: %q.\n", err)
@@ -220,13 +220,13 @@ func TestDeleteFeedFollow(t *testing.T) {
 
 func TestGetAllFollowedFeeds(t *testing.T) {
 	e := ExpReq{
-		ExpUrlPath:     "/feed_follows",
+		ExpURLPath:     "/feed_follows",
 		ExpHTTPMethod:  http.MethodGet,
 		ExpAuthMethod:  "ApiKey", // TODO perhaps use const or enum
 		ExpBody:        "",
 		ExpContentType: "", // TODO Are these required
 	}
-	ApiKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
+	APIKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
 	testCases := []TestCase{
 		{
 			name:     "Get all followed feeds: valid",
@@ -241,7 +241,7 @@ func TestGetAllFollowedFeeds(t *testing.T) {
 	"UserID": "someid",
 	"LastFetchedAt": "someTime"
 	}]` + string('\n'),
-			resp: testResp[GET_FEEDS],
+			resp: testResp[getFeeds],
 		},
 	}
 	for _, tc := range testCases {
@@ -250,7 +250,7 @@ func TestGetAllFollowedFeeds(t *testing.T) {
 			url, cleanup := mockServer(checkReq(t, e, tc))
 			defer cleanup()
 			var out bytes.Buffer
-			err := getAllFollowedFeedsAction(&out, url, ApiKey)
+			err := getAllFollowedFeedsAction(&out, url, APIKey)
 			if err != nil {
 				if tc.expError == nil {
 					t.Fatalf("Expected no error, got: %q.\n", err)
@@ -267,20 +267,20 @@ func TestGetAllFollowedFeeds(t *testing.T) {
 }
 func TestFollowFeed(t *testing.T) {
 	e := ExpReq{
-		ExpUrlPath:     "/feed_follows",
+		ExpURLPath:     "/feed_follows",
 		ExpHTTPMethod:  http.MethodPost,
 		ExpAuthMethod:  "ApiKey", // TODO perhaps use const or enum,
 		ExpContentType: "application/json",
 		ExpBody:        `{"feed_id":"c5c9212c-57a3-4d68-b42e-addd951502c0"}` + string('\n'), //Encoder adds a newline char
 	}
-	ApiKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
+	APIKey := "someFancy4|>11<3j" //TODO decide whether to test this and HOW
 	testCases := []TestCase{
 		{
 			name:     "Follow existing feed",
 			expError: nil,
 			expOut:   `{"ID":"c52d3a13-2245-4991-8012-8856417b706f","CreatedAt":"2024-02-26T17:47:09.099267Z","UpdatedAt":"2024-02-26T17:47:09.099268Z","UserID":"8f588151-5489-4668-bfff-8c50021c1160","FeedID":"c5c9212c-57a3-4d68-b42e-addd951502c0"}` + string('\n'),
 			feedID:   "c5c9212c-57a3-4d68-b42e-addd951502c0",
-			resp:     testResp[FOLLOW_EXISTING_FEED]},
+			resp:     testResp[followExistingFeed]},
 	}
 
 	for _, tc := range testCases {
@@ -289,7 +289,7 @@ func TestFollowFeed(t *testing.T) {
 			url, cleanup := mockServer(checkReq(t, e, tc))
 			defer cleanup()
 			var out bytes.Buffer
-			err := followFeedAction(&out, tc.feedID, url, ApiKey)
+			err := followFeedAction(&out, tc.feedID, url, APIKey)
 			if err != nil {
 				if tc.expError == nil {
 					t.Fatalf("Expected no error, got: %q.\n", err)
@@ -307,7 +307,7 @@ func TestFollowFeed(t *testing.T) {
 
 func TestCreateUser(t *testing.T) {
 	e := ExpReq{
-		ExpUrlPath:     "/users",
+		ExpURLPath:     "/users",
 		ExpHTTPMethod:  http.MethodPost,
 		ExpContentType: "application/json",
 		ExpBody:        `{"name":"testUsername"}` + string('\n'), //Encoder adds a newline char
@@ -319,7 +319,7 @@ func TestCreateUser(t *testing.T) {
 			expOut: `{"ID":"001","CreatedAt":"testTime","UpdatedAt":"2019-10-28T08:23:38.310097076-04:00","Name":"TestName","ApiKey":"414141414141"}
 `,
 			username: "testUsername",
-			resp:     testResp[CREATE_USER_SUCCESS],
+			resp:     testResp[createUserSuccess],
 		},
 	}
 	for _, tc := range testCases {
@@ -347,7 +347,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestAddFeed(t *testing.T) {
 	e := ExpReq{
-		ExpUrlPath:     "/feeds",
+		ExpURLPath:     "/feeds",
 		ExpHTTPMethod:  http.MethodPost,
 		ExpContentType: "application/json",
 		ExpAuthMethod:  "ApiKey",
@@ -373,7 +373,7 @@ func TestAddFeed(t *testing.T) {
 }` + string('\n'), //Encoder adds a newline char
 			feedName: "testName",
 			feedURL:  "testingURL",
-			resp:     testResp[CREATE_FEED_SUCCESS],
+			resp:     testResp[createFeedSuccess],
 		},
 	}
 	for _, tc := range testCases {

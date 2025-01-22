@@ -99,9 +99,9 @@ func TestIntegration(t *testing.T) {
 	t.Run("Follow feed", func(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
-		feed_id := "feedID"
+		feedID := "feedID"
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := followFeedAction(&out, feed_id, API_URL, key)
+		err := followFeedAction(&out, feedID, API_URL, key)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
 		}
@@ -112,9 +112,9 @@ func TestIntegration(t *testing.T) {
 	t.Run("Unfollow feed", func(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
-		feed_id := "feedID"
+		feedID := "feedID"
 		key := "6711c5359a5bb4a60bfd37113689bc003e128764d2599a7974fbc77e1580c27c"
-		err := deleteFollowFeedAction(&out, API_URL, key, feed_id)
+		err := deleteFollowFeedAction(&out, API_URL, key, feedID)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v\n", ErrInvalidResponse, err)
 		}

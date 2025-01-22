@@ -43,7 +43,6 @@ func TestValidLimit(t *testing.T) {
 }
 
 func TestValidateUsername(t *testing.T) {
-	const MAX_LENGTH = 35
 	type testCase struct {
 		name   string
 		input  string
@@ -62,7 +61,7 @@ func TestValidateUsername(t *testing.T) {
 		},
 		{
 			name:   "max allowed length",
-			input:  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", // MAX_LENGTH,
+			input:  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 			expOut: true,
 		},
 		{
@@ -120,7 +119,7 @@ func TestIsUrl(t *testing.T) {
 	}
 	for _, tc := range tCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := isUrl(tc.inURL)
+			result := isURL(tc.inURL)
 			if result != tc.expOut {
 				t.Errorf("expected: %v, got: %v, input: %v\n", tc.expOut, result, tc.inURL)
 			}

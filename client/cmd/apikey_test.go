@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestReadApiKey(t *testing.T) {
+func TestReadAPIKey(t *testing.T) {
 	testCases := []struct {
 		testName string
 		expErr   bool
@@ -32,7 +32,7 @@ func TestReadApiKey(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
 			var out string
-			out, err := ReadApiKey(tc.input)
+			out, err := ReadAPIKey(tc.input)
 			if err != nil && !tc.expErr {
 				t.Fatalf("Expected no err, got: %v\n", err)
 			}
@@ -63,7 +63,7 @@ func TestSaveApiKey(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
 			var out bytes.Buffer
-			err := SaveApiKey(tc.input, &out)
+			err := SaveAPIKey(tc.input, &out)
 			if err != nil {
 				if !tc.expErr {
 					t.Fatalf("Expected no err: %v, got: %v", tc.expErr, err) // TODO Could/Should define error type
@@ -77,7 +77,7 @@ func TestSaveApiKey(t *testing.T) {
 	}
 }
 
-func TestExtractApiKey(t *testing.T) {
+func TestExtractAPIKey(t *testing.T) {
 	testCases := []struct {
 		testName string
 		expErr   bool
@@ -102,7 +102,7 @@ func TestExtractApiKey(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			out, err := ExtractApiKey(tc.input)
+			out, err := ExtractAPIKey(tc.input)
 			if err != nil {
 				if !tc.expErr {
 					t.Fatalf("Expected no err: %v, got: %v", tc.expErr, err) // TODO Could/Should define error type

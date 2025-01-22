@@ -24,10 +24,10 @@ var addCmd = &cobra.Command{
 	`,
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		apiKey, err := ReadApiKey(credentialsFile)
+		apiKey, err := ReadAPIKey(credentialsFile)
 		if err != nil {
 			fmt.Fprintf(os.Stdout, "cannot read apiKey: %v", err)
-			os.Exit(5)
+			os.Exit(1)
 		}
 		return addFeedAction(os.Stdout, args, API_URL, apiKey)
 	},
@@ -55,7 +55,7 @@ func displayAddFeed(out io.Writer, feed []byte) error {
 func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 	ENDPOINT := "/feeds"
 	url += ENDPOINT
-	if ok := isUrl(feed); !ok {
+	if ok := isURL(feed); !ok {
 		return nil, fmt.Errorf("invalid url provided: %v", feed)
 	}
 	feedex := struct {

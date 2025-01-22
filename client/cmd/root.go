@@ -15,7 +15,7 @@ var rootCmd = &cobra.Command{
 	Long: `Add feeds which you would like to follow, follow feeds added by
 	other users. Unfollow them for whatever reason. Collect posts from the
 	followed feeds`,
-	Version: Version,
+	Version: version,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -30,9 +30,9 @@ func Execute() {
 func init() {
 
 	cobra.OnInitialize(initConfig)
-	msg := fmt.Sprintf("config file (default is %s)", DEFAULT_ENV_FILE)
+	msg := fmt.Sprintf("config file (default is %s)", defaultEnvFile)
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", msg)
-	versionTemplate := fmt.Sprintf("%s: %s - version %s (%s)\n", rootCmd.Name(), rootCmd.Short, rootCmd.Version, Commit)
+	versionTemplate := fmt.Sprintf("%s: %s - version %s (%s)\n", rootCmd.Name(), rootCmd.Short, rootCmd.Version, commit)
 	rootCmd.SetVersionTemplate(versionTemplate)
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
@@ -42,27 +42,27 @@ var (
 	API_URL         string
 	cfgFile         string
 	credentialsFile string
-	Version         string
-	Commit          string
+	version         string
+	commit          string
 )
 
 const (
-	DEFAULT_ENV_FILE      string = "./.env"
+	defaultEnvFile        string = "./.env"
 	defaultCredentialsLoc string = "./.credentials"
 )
 
 func initConfig() {
 	const credentialsKey string = "CRED_LOC"
-	const urlKey string = "SERVER_URL"
+	const URLKey string = "SERVER_URL"
 	if cfgFile == "" {
-		cfgFile = DEFAULT_ENV_FILE
+		cfgFile = defaultEnvFile
 	}
 	err := godotenv.Load(cfgFile)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	API_URL = os.Getenv(urlKey)
+	API_URL = os.Getenv(URLKey)
 	if API_URL == "" {
 		fmt.Printf("No server address specified: \"%s\"\n", API_URL)
 		os.Exit(1)
