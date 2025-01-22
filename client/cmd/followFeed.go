@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 Denis <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
