@@ -31,8 +31,6 @@ func newClient() *http.Client {
 	return c
 }
 
-var c *http.Client = newClient()
-
 func sendReq(url, method, apiKey, contentType string, expStatus int, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {

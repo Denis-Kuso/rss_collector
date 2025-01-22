@@ -16,7 +16,6 @@ var rootCmd = &cobra.Command{
 	other users. Unfollow them for whatever reason. Collect posts from the
 	followed feeds`,
 	Version: Version,
-	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -33,7 +32,6 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	msg := fmt.Sprintf("config file (default is %s)", DEFAULT_ENV_FILE)
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", msg)
-	//versionTemplate := `{{printf "%s: %s - version %s\n" .Name .Short .Version}}`
 	versionTemplate := fmt.Sprintf("%s: %s - version %s (%s)\n", rootCmd.Name(), rootCmd.Short, rootCmd.Version, Commit)
 	rootCmd.SetVersionTemplate(versionTemplate)
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

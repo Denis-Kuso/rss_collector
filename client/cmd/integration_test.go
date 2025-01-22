@@ -25,8 +25,6 @@ import (
 func TestIntegration(t *testing.T) {
 	fmt.Println("TESTING with real server...")
 	fmt.Println("Ou jea, let's expose some flaws")
-	//fmt.Println("Creating user...")
-	//fmt.Println("User created!")
 	type User struct {
 		name string
 		key  string

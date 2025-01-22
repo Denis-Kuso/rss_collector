@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 
-	//"github.com/Denis-Kuso/cli_rss/pkg/fetch"
 	"github.com/spf13/cobra"
 )
 
