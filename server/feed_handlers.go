@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -214,7 +213,6 @@ func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database
 	feedID, err := uuid.Parse(providedFeedID)
 	if err != nil {
 		errMsg = fmt.Sprintf("Cannot parse feed id: %s", providedFeedID)
-		log.Printf("%s; err: %v\n", errMsg, err)
 		respondWithError(w, http.StatusBadRequest, errMsg)
 		return
 	}

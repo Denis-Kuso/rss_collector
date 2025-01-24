@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -80,7 +79,6 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user data
 		desired_limit_I, err := strconv.Atoi(desired_limit)
 		if err != nil {
 			errMsg = fmt.Sprintf("Provided limit value: %s not supported", desired_limit)
-			log.Printf("%s, %v", errMsg, err)
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}
