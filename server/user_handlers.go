@@ -66,7 +66,7 @@ func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	publicUser := dbUserToPublicUser(user, make([]database.Feed, 0)) // no feeds for a new user
-	respondWithJSON(w, http.StatusOK, publicUser)
+	respondWithJSON(w, http.StatusCreated, publicUser)
 	return
 }
 

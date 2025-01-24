@@ -87,7 +87,7 @@ func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request, user database.U
 		return
 	}
 	publicFeed := dbFeedToPublicFeed(feed)
-	respondWithJSON(w, http.StatusOK, publicFeed)
+	respondWithJSON(w, http.StatusCreated, publicFeed)
 	return
 }
 
