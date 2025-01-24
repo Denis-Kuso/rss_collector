@@ -33,7 +33,7 @@ func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request, user database.U
 	err = json.Unmarshal(data, &userReq)
 	if err != nil {
 		if jsonErr, ok := err.(*json.SyntaxError); ok {
-			errMsg = fmt.Sprintf("cannot parse json, err occured at byte:%d", jsonErr.Offset)
+			errMsg = fmt.Sprintf("cannot parse json, err at position: %d", jsonErr.Offset)
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}
@@ -106,7 +106,7 @@ func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request, user database.U
 	err = json.Unmarshal(data, &userReq)
 	if err != nil {
 		if jsonErr, ok := err.(*json.SyntaxError); ok {
-			errMsg = fmt.Sprintf("cannot parse json, err occured at byte:%d", jsonErr.Offset)
+			errMsg = fmt.Sprintf("cannot parse json, err at position: %d", jsonErr.Offset)
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}

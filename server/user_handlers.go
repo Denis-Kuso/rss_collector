@@ -38,7 +38,7 @@ func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 	// TODO create custom JSON messages
 	if err != nil {
 		if jsonErr, ok := err.(*json.SyntaxError); ok {
-			errMsg = fmt.Sprintf("cannot parse json, err occured at byte:%d", jsonErr.Offset)
+			errMsg = fmt.Sprintf("cannot parse json, err occured at position: %d", jsonErr.Offset)
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}
