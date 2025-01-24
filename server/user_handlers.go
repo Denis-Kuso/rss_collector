@@ -140,7 +140,7 @@ func (a *app) GetUserData(w http.ResponseWriter, r *http.Request, user database.
 	feeds, err = a.db.GetBasicInfoFeed(r.Context(), feedIDs)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			fmt.Errorf("cannot retrieve feed info: %v", err)
+			err = fmt.Errorf("cannot retrieve feed info: %v", err)
 			a.serverErrorResponse(w, r, err)
 			return
 		}
