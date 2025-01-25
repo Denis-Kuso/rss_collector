@@ -34,9 +34,9 @@ func (a *app) logError(r *http.Request, err error) {
 	slog.Error("handlerError", "error", err, "req method", r.Method, "URL", r.URL)
 }
 
-func (app *app) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func (a *app) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	err = fmt.Errorf("%w: %s", err, string(debug.Stack()))
-	app.logError(r, err)
+	a.logError(r, err)
 
 	msg := "OOPS! Ran into a problem and could not process your request"
 	respondWithError(w, http.StatusInternalServerError, msg)

@@ -15,10 +15,11 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO provide differently
 const (
-	QUERY_LIMIT         = "limit"
-	DEFAULT_QUERY_LIMIT = 5
-	MAX_PROVIDED_POSTS  = 100
+	queryKey          = "limit"
+	defaultQueryLimit = 5
+	maxPosts          = 100
 )
 
 func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -71,19 +72,19 @@ func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user database.User) {
-	limit := DEFAULT_QUERY_LIMIT
+	limit := defaultQueryLimit
 	var errMsg string
-	desired_limit := r.URL.Query().Get(QUERY_LIMIT)
+	desiredLimit := r.URL.Query().Get(queryKey)
 	// is limit parameter provided and smaller than max?
-	if desired_limit != "" {
-		desired_limit_I, err := strconv.Atoi(desired_limit)
+	if desiredLimit != "" {
+		dLimit, err := strconv.Atoi(desiredLimit)
 		if err != nil {
-			errMsg = fmt.Sprintf("Provided limit value: %s not supported", desired_limit)
+			errMsg = fmt.Sprintf("Provided limit value: %s not supported", desiredLimit)
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}
-		if (0 < desired_limit_I) && (desired_limit_I < MAX_PROVIDED_POSTS) {
-			limit = desired_limit_I
+		if (0 < dLimit) && (dLimit < maxPosts) {
+			limit = dLimit
 		}
 	}
 	posts, err := a.db.GetPostsFromUser(r.Context(), database.GetPostsFromUserParams{

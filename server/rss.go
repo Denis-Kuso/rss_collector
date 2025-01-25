@@ -26,23 +26,21 @@ type RSSEntry struct {
 	PubDate     string `xml:"pubDate"`
 	Description string `xml:"description"`
 	Link        string `xml:"link"`
-	Id          string `xml:"id"`
+	ID          string `xml:"id"`
 }
 
 func (rss *RSSEntry) getPubTime() string {
 	if len(rss.PublishedAt) > len(rss.PubDate) {
 		return rss.PublishedAt
-	} else {
-		return rss.PubDate
 	}
+	return rss.PubDate
 }
 
 func (rss *RSSEntry) getLink() string {
 	if rss.Link == "" {
-		return rss.Id
-	} else {
-		return rss.Link
+		return rss.ID
 	}
+	return rss.Link
 }
 
 // discriminates between different versions of nametags (e.g. id vs link),

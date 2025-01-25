@@ -207,8 +207,8 @@ func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database
 	type response struct {
 		Name string `json:"unfollowedFeed"`
 	}
-	const QUERY_FEED_FOLLOW = "feedFollowID"
-	providedFeedID := chi.URLParam(r, QUERY_FEED_FOLLOW)
+	const queryKey = "feedFollowID"
+	providedFeedID := chi.URLParam(r, queryKey)
 
 	feedID, err := uuid.Parse(providedFeedID)
 	if err != nil {
