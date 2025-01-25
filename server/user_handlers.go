@@ -125,12 +125,11 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user data
 func (a *app) GetUserData(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), user.ID)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			err = fmt.Errorf("cannot retrieve user info: %q: %v", user.ID, err)
-			a.serverErrorResponse(w, r, err)
-			return
-		}
+	// ErrNoRows is acceptable, since the user might not yet follow anything
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		err = fmt.Errorf("cannot retrieve feed info: %v", err)
+		a.serverErrorResponse(w, r, err)
+		return
 	}
 	SIZE := len(feedFollows)
 	feedIDs := make([]uuid.UUID, SIZE)
@@ -139,12 +138,10 @@ func (a *app) GetUserData(w http.ResponseWriter, r *http.Request, user database.
 	}
 	feeds := make([]database.Feed, SIZE)
 	feeds, err = a.db.GetBasicInfoFeed(r.Context(), feedIDs)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			err = fmt.Errorf("cannot retrieve feed info: %v", err)
-			a.serverErrorResponse(w, r, err)
-			return
-		}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		err = fmt.Errorf("cannot retrieve feed info: %v", err)
+		a.serverErrorResponse(w, r, err)
+		return
 	}
 	publicUser := dbUserToPublicUser(user, feeds)
 	respondWithJSON(w, http.StatusOK, publicUser)

@@ -171,12 +171,10 @@ func (a *app) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user d
 		feedIDs[i] = f.FeedID
 	}
 	feeds, err := a.db.GetBasicInfoFeed(r.Context(), feedIDs)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			err = fmt.Errorf("cannot retrieve feed info: %d: %v", user.ID, err)
-			a.serverErrorResponse(w, r, err)
-			return
-		}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		err = fmt.Errorf("cannot retrieve feed info: %d: %v", user.ID, err)
+		a.serverErrorResponse(w, r, err)
+		return
 	}
 	publicFeeds := dbFeedToPublicFeeds(feeds)
 	respondWithJSON(w, http.StatusOK, publicFeeds)
