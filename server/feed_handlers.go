@@ -11,7 +11,6 @@ import (
 
 	"github.com/Denis-Kuso/rss_collector/server/internal/database"
 	"github.com/Denis-Kuso/rss_collector/server/internal/validate"
-	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -206,7 +205,8 @@ func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database
 		Name string `json:"unfollowedFeed"`
 	}
 	const queryKey = "feedFollowID"
-	providedFeedID := chi.URLParam(r, queryKey)
+	queries := r.URL.Query()
+	providedFeedID := queries.Get(queryKey)
 
 	feedID, err := uuid.Parse(providedFeedID)
 	if err != nil {
