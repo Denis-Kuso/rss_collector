@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -13,32 +14,47 @@ import (
 )
 
 const (
-	FEEDS_TO_FETCH = 3
+	numFeeds = 3 // TODO pass around differently
 )
 
 // Periodically:
 // fetch from DB feeds that need fetching
 // fetch feeds from their URLS (concurently)
 // mark feed as fetched
-func worker(db *database.Queries, interRequestInterval time.Duration, workers int) {
-	fetch_ticker := time.NewTicker(interRequestInterval)
-	for ; ; <-fetch_ticker.C {
-		// fetch from DB
-		feeds, err := db.GetNextFeedsToFetch(context.Background(), FEEDS_TO_FETCH)
-		if err != nil {
-			log.Printf("ERR: %v durring retrieval of feeds from db\n", err)
+func worker(done <-chan struct{}, db *database.Queries, interRequestInterval time.Duration) {
+	fetchTicker := time.NewTicker(interRequestInterval)
+	defer fetchTicker.Stop()
+	var wg sync.WaitGroup
+	for {
+		select {
+		case <-fetchTicker.C:
+			feeds, err := db.GetNextFeedsToFetch(context.Background(), numFeeds)
+			if err != nil {
+				slog.Error("cannot retrieve feeds", "error", err)
+				continue
+			}
+			for _, feed := range feeds {
+				wg.Add(1)
+				go func(f database.Feed) {
+					//
+					defer wg.Done()
+					defer func(cf database.Feed) {
+						if r := recover(); r != nil {
+							slog.Warn("panic recovered: %v", "error", r)
+						}
+					}(f)
+					processFeed(db, f)
+				}(feed)
+			}
+		case <-done: // server initiatied shutdown
+			wg.Wait()
+			slog.Info("worker stopped")
+			return
 		}
-		var wg sync.WaitGroup
-		for _, feed := range feeds {
-			wg.Add(1)
-			go processFeed(db, &wg, feed)
-		}
-		wg.Wait()
 	}
 }
 
-func processFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
-	defer wg.Done()
+func processFeed(db *database.Queries, feed database.Feed) {
 	_, err := db.MarkFeedFetched(context.Background(), feed.ID)
 	if err != nil {
 		log.Printf("Cannot't make feed %s fetched: %v\n", feed.Name, err)
@@ -86,26 +102,25 @@ func processFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 }
 
 func transformPubTime(pubTime string) (time.Time, error) {
-	const DESIRED_FORMAT = time.RFC3339
-	FORMATS := []string{time.RFC822, time.RFC822Z, time.RFC1123, time.RFC850, time.RFC1123Z,
+	const desiredFormat = time.RFC3339
+	formats := []string{time.RFC822, time.RFC822Z, time.RFC1123, time.RFC850, time.RFC1123Z,
 		time.DateTime, time.DateOnly, time.Stamp, "Mon, 2 Jan 2006 15:04:05 MST"} // custom format found in one of the feeds
-	var t_pub time.Time
+	var timeOfPub time.Time
 	var err error
 
-	if t_pub, err = time.Parse(DESIRED_FORMAT, pubTime); err != nil {
+	if timeOfPub, err = time.Parse(desiredFormat, pubTime); err != nil {
 		// try other formats
-		for _, format := range FORMATS {
-			if t_pub, err = time.Parse(format, pubTime); err != nil {
+		for _, format := range formats {
+			if timeOfPub, err = time.Parse(format, pubTime); err != nil {
 				continue
-			} else {
-				t_str := t_pub.Format(DESIRED_FORMAT)
-				_, err = time.Parse(DESIRED_FORMAT, t_str)
-				if err != nil {
-					log.Printf("failed to transform time: %s, %v\n", err, t_str)
-				}
-				break
 			}
+			t := timeOfPub.Format(desiredFormat)
+			_, err = time.Parse(desiredFormat, t)
+			if err != nil {
+				log.Printf("failed to transform time: %s, %v\n", err, t)
+			}
+			break
 		}
 	}
-	return t_pub, err
+	return timeOfPub, err
 }

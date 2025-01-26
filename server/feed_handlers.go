@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -17,7 +16,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func (s *StateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	type Request struct {
 		Name string `json:"name"`
@@ -34,13 +33,12 @@ func (s *StateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 	err = json.Unmarshal(data, &userReq)
 	if err != nil {
 		if jsonErr, ok := err.(*json.SyntaxError); ok {
-			errMsg = fmt.Sprintf("cannot parse json, err occured at byte:%d", jsonErr.Offset)
+			errMsg = fmt.Sprintf("cannot parse json, err at position: %d", jsonErr.Offset)
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}
 
-		errMsg = "cannot parse json"
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
 	if ok := validate.IsUrl(userReq.URL); !ok {
@@ -54,7 +52,7 @@ func (s *StateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 		return
 	}
 
-	feed, err := s.DB.CreateFeed(r.Context(), database.CreateFeedParams{
+	feed, err := a.db.CreateFeed(r.Context(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -71,12 +69,11 @@ func (s *StateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 				return
 			}
 		}
-		errMsg = fmt.Sprintf("cannot create a following to feed: %s; %s", userReq.Name, userReq.URL)
-		log.Printf("failed during feed creation: %v, %s; %s\n", err, userReq.Name, userReq.URL)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("failed creating feed: %q: %q: %v", userReq.Name, userReq.URL, err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
-	_, err = s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+	_, err = a.db.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -85,16 +82,16 @@ func (s *StateConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user da
 	})
 
 	if err != nil {
-		log.Printf("failed during feed creation: %v, %s; %s\n", err, userReq.Name, userReq.URL)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("failed creating feed-follow: %q with userID: %q err: %v", user.ID, feed.ID, err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
 	publicFeed := dbFeedToPublicFeed(feed)
-	respondWithJSON(w, http.StatusOK, publicFeed)
+	respondWithJSON(w, http.StatusCreated, publicFeed)
 	return
 }
 
-func (s *StateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	type userRequest struct {
 		FeedID uuid.UUID `json:"feed_id"`
 	}
@@ -109,29 +106,28 @@ func (s *StateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user da
 	err = json.Unmarshal(data, &userReq)
 	if err != nil {
 		if jsonErr, ok := err.(*json.SyntaxError); ok {
-			errMsg = fmt.Sprintf("cannot parse json, err occured at byte:%d", jsonErr.Offset)
+			errMsg = fmt.Sprintf("cannot parse json, err at position: %d", jsonErr.Offset)
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}
 
-		errMsg = "cannot parse json"
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
 	FeedID := []uuid.UUID{userReq.FeedID}
 	// does desired feed even exist?
-	feedsInfo, err := s.DB.GetBasicInfoFeed(r.Context(), FeedID)
+	feedsInfo, err := a.db.GetBasicInfoFeed(r.Context(), FeedID)
 	if err != nil {
 		if errors.Is(sql.ErrNoRows, err) {
 			errMsg = fmt.Sprintf("cannot follow feed: %s. No such feed", userReq.FeedID)
 			respondWithError(w, http.StatusNotFound, errMsg)
 			return
 		}
-		errMsg = fmt.Sprintf("cannot follow feed:%s :%v", userReq.FeedID, err)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("cannot follow feedID: %q: %v", userReq.FeedID, err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
-	_, err = s.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+	_, err = a.db.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		UserID:    user.ID,
 		FeedID:    userReq.FeedID,
@@ -148,58 +144,55 @@ func (s *StateConfig) FollowFeed(w http.ResponseWriter, r *http.Request, user da
 			}
 		}
 
-		errMsg = fmt.Sprintf("cannot follow feed: %s, err: %v", userReq.FeedID, err)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("cannot follow feedID: %q: %v", userReq.FeedID, err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
 	pubFeed := dbFeedToPublicFeed(feedsInfo[0]) // use first and only element
 	respondWithJSON(w, http.StatusOK, pubFeed)
 }
 
-func (s *StateConfig) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	var errMsg string
-	feedFollows, err := s.DB.GetFeedFollowsForUser(r.Context(), user.ID)
+	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), user.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			errMsg = fmt.Sprintf("no followed feeds found")
 			respondWithJSON(w, http.StatusOK, errMsg)
 			return
 		}
-		errMsg = fmt.Sprintf("err retrieving feedFollows: %v", err)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("cannot retrieve feedfollows for user: %d: %v", user.ID, err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
 	feedIDs := make([]uuid.UUID, len(feedFollows))
 	for i, f := range feedFollows {
 		feedIDs[i] = f.FeedID
 	}
-	feeds, err := s.DB.GetBasicInfoFeed(r.Context(), feedIDs)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			errMsg := fmt.Sprintf("cannot retrieve info about feeds: %s", err)
-			respondWithError(w, http.StatusInternalServerError, errMsg)
-			return
-		}
+	feeds, err := a.db.GetBasicInfoFeed(r.Context(), feedIDs)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		err = fmt.Errorf("cannot retrieve feed info: %d: %v", user.ID, err)
+		a.serverErrorResponse(w, r, err)
+		return
 	}
 	publicFeeds := dbFeedToPublicFeeds(feeds)
 	respondWithJSON(w, http.StatusOK, publicFeeds)
 	return
 }
 
-func (s *StateConfig) GetFeeds(w http.ResponseWriter, r *http.Request) {
+func (a *app) GetFeeds(w http.ResponseWriter, r *http.Request) {
 
 	var errMsg string
-	feeds, err := s.DB.GetFeeds(r.Context())
+	feeds, err := a.db.GetFeeds(r.Context())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			errMsg = "no feeds found"
 			respondWithJSON(w, http.StatusOK, errMsg)
 			return
 		}
-		errMsg = "could not retrieve feeds"
-		log.Printf("%s: %v\n", errMsg, err)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("cannot retrieve feeds: %v", err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
 	publicFeeds := dbFeedToPublicFeeds(feeds)
@@ -207,30 +200,28 @@ func (s *StateConfig) GetFeeds(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (s *StateConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	var errMsg string
 	type response struct {
 		Name string `json:"unfollowedFeed"`
 	}
-	const QUERY_FEED_FOLLOW = "feedFollowID"
-	providedFeedID := chi.URLParam(r, QUERY_FEED_FOLLOW)
+	const queryKey = "feedFollowID"
+	providedFeedID := chi.URLParam(r, queryKey)
 
 	feedID, err := uuid.Parse(providedFeedID)
 	if err != nil {
 		errMsg = fmt.Sprintf("Cannot parse feed id: %s", providedFeedID)
-		log.Printf("%s; err: %v\n", errMsg, err)
 		respondWithError(w, http.StatusBadRequest, errMsg)
 		return
 	}
 
-	err = s.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
+	err = a.db.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
 		FeedID: feedID,
 		UserID: user.ID,
 	})
 	if err != nil {
-		errMsg = fmt.Sprintf("cannot unfollow feed: %s", providedFeedID)
-		log.Printf("%s; err: %v\n", errMsg, err)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("cannot delete following: %v: %v", feedID, err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
 	respondWithJSON(w, http.StatusOK, response{providedFeedID})

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -16,13 +15,14 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO provide differently
 const (
-	QUERY_LIMIT         = "limit"
-	DEFAULT_QUERY_LIMIT = 5
-	MAX_PROVIDED_POSTS  = 100
+	queryKey          = "limit"
+	defaultQueryLimit = 5
+	maxPosts          = 100
 )
 
-func (s *StateConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	type userRequest struct {
 		Name string `json:"name"`
@@ -36,9 +36,10 @@ func (s *StateConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	userReq := userRequest{}
 	err = json.Unmarshal(data, &userReq)
+	// TODO create custom JSON messages
 	if err != nil {
 		if jsonErr, ok := err.(*json.SyntaxError); ok {
-			errMsg = fmt.Sprintf("cannot parse json, err occured at byte:%d", jsonErr.Offset)
+			errMsg = fmt.Sprintf("cannot parse json, err occured at position: %d", jsonErr.Offset)
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}
@@ -53,43 +54,40 @@ func (s *StateConfig) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.DB.CreateUser(r.Context(), database.CreateUserParams{
+	user, err := a.db.CreateUser(r.Context(), database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 		Name:      userReq.Name,
 	})
 	if err != nil {
-		errMsg = fmt.Sprintf("cannot create user: %s", userReq.Name)
-		log.Printf("%s, err: %v", errMsg, err)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("cannot create user: %v: %v", userReq.Name, err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
-	log.Printf("Created user: %v\n", user)
 
 	publicUser := dbUserToPublicUser(user, make([]database.Feed, 0)) // no feeds for a new user
-	respondWithJSON(w, http.StatusOK, publicUser)
+	respondWithJSON(w, http.StatusCreated, publicUser)
 	return
 }
 
-func (s *StateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user database.User) {
-	limit := DEFAULT_QUERY_LIMIT
+func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	limit := defaultQueryLimit
 	var errMsg string
-	desired_limit := r.URL.Query().Get(QUERY_LIMIT)
+	desiredLimit := r.URL.Query().Get(queryKey)
 	// is limit parameter provided and smaller than max?
-	if desired_limit != "" {
-		desired_limit_I, err := strconv.Atoi(desired_limit)
+	if desiredLimit != "" {
+		dLimit, err := strconv.Atoi(desiredLimit)
 		if err != nil {
-			errMsg = fmt.Sprintf("Provided limit value: %s not supported", desired_limit)
-			log.Printf("%s, %v", errMsg, err)
+			errMsg = fmt.Sprintf("Provided limit value: %s not supported", desiredLimit)
 			respondWithError(w, http.StatusBadRequest, errMsg)
 			return
 		}
-		if (0 < desired_limit_I) && (desired_limit_I < MAX_PROVIDED_POSTS) {
-			limit = desired_limit_I
+		if (0 < dLimit) && (dLimit < maxPosts) {
+			limit = dLimit
 		}
 	}
-	posts, err := s.DB.GetPostsFromUser(r.Context(), database.GetPostsFromUserParams{
+	posts, err := a.db.GetPostsFromUser(r.Context(), database.GetPostsFromUserParams{
 		UserID: user.ID,
 		Limit:  int32(limit),
 	})
@@ -99,9 +97,8 @@ func (s *StateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, u
 			respondWithJSON(w, http.StatusOK, errMsg)
 			return
 		}
-		errMsg = "could not retrieve posts"
-		log.Printf("%s; key: %s; err: %v\n", errMsg, user.ApiKey, err)
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+		err = fmt.Errorf("cannot retrieve posts: %v", err)
+		a.serverErrorResponse(w, r, err)
 		return
 	}
 	SIZE := len(posts)
@@ -110,11 +107,11 @@ func (s *StateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, u
 	feeds := make([]database.Feed, SIZE)
 	for i, p := range posts {
 		feedID[FIRST] = p.FeedID
-		feed, err := s.DB.GetBasicInfoFeed(r.Context(), feedID)
+		feed, err := a.db.GetBasicInfoFeed(r.Context(), feedID)
 		if err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
-				errMsg = fmt.Sprintf("cannot retrieve info. Feed id: %v, err:%v", feedID, err)
-				respondWithError(w, http.StatusInternalServerError, errMsg)
+				err = fmt.Errorf("cannot retrieve feed info: %q: %v", p.FeedID, err)
+				a.serverErrorResponse(w, r, err)
 				return
 			}
 			continue
@@ -125,16 +122,14 @@ func (s *StateConfig) GetPostsFromUser(w http.ResponseWriter, r *http.Request, u
 	respondWithJSON(w, http.StatusOK, publicPosts)
 }
 
-func (s *StateConfig) GetUserData(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetUserData(w http.ResponseWriter, r *http.Request, user database.User) {
 
-	var errMsg string
-	feedFollows, err := s.DB.GetFeedFollowsForUser(r.Context(), user.ID)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			errMsg = fmt.Sprintf("err retrieving feed follows: %v", err)
-			respondWithError(w, http.StatusInternalServerError, errMsg)
-			return
-		}
+	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), user.ID)
+	// ErrNoRows is acceptable, since the user might not yet follow anything
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		err = fmt.Errorf("cannot retrieve feed info: %v", err)
+		a.serverErrorResponse(w, r, err)
+		return
 	}
 	SIZE := len(feedFollows)
 	feedIDs := make([]uuid.UUID, SIZE)
@@ -142,13 +137,11 @@ func (s *StateConfig) GetUserData(w http.ResponseWriter, r *http.Request, user d
 		feedIDs[i] = f.FeedID
 	}
 	feeds := make([]database.Feed, SIZE)
-	feeds, err = s.DB.GetBasicInfoFeed(r.Context(), feedIDs)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			errMsg = fmt.Sprintf("cannot retrieve feed info: %v", err)
-			respondWithError(w, http.StatusInternalServerError, errMsg)
-			return
-		}
+	feeds, err = a.db.GetBasicInfoFeed(r.Context(), feedIDs)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		err = fmt.Errorf("cannot retrieve feed info: %v", err)
+		a.serverErrorResponse(w, r, err)
+		return
 	}
 	publicUser := dbUserToPublicUser(user, feeds)
 	respondWithJSON(w, http.StatusOK, publicUser)

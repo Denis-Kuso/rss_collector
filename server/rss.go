@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -26,23 +26,21 @@ type RSSEntry struct {
 	PubDate     string `xml:"pubDate"`
 	Description string `xml:"description"`
 	Link        string `xml:"link"`
-	Id          string `xml:"id"`
+	ID          string `xml:"id"`
 }
 
 func (rss *RSSEntry) getPubTime() string {
 	if len(rss.PublishedAt) > len(rss.PubDate) {
 		return rss.PublishedAt
-	} else {
-		return rss.PubDate
 	}
+	return rss.PubDate
 }
 
 func (rss *RSSEntry) getLink() string {
 	if rss.Link == "" {
-		return rss.Id
-	} else {
-		return rss.Link
+		return rss.ID
 	}
+	return rss.Link
 }
 
 // discriminates between different versions of nametags (e.g. id vs link),
@@ -80,19 +78,19 @@ func fetchFeed(url string) ([]byte, error) {
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		log.Printf("ERR:%v: failed request, url: %s\n", err, url)
+		err = fmt.Errorf("creating request failed: %w", err)
 		return nil, err
 	}
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Printf("Failed request: %v\n", err)
+		err = fmt.Errorf("request failed: %w", err)
 		return nil, err
 	}
 	resp, err := io.ReadAll(res.Body)
 	if err != nil {
+		err = fmt.Errorf("cannot read body: %w", err)
 		return nil, err
 	}
-	log.Printf("Successfull response from %v\n", url)
 	return resp, nil
 }
 
@@ -100,7 +98,6 @@ func fetchFeed(url string) ([]byte, error) {
 func URLtoFeed(url string) (Feed, error) {
 	resp, err := fetchFeed(url)
 	if err != nil {
-		log.Printf("ERR during fetching URL: %v\n", err)
 		return Feed{}, err
 	}
 	rss := TempFeed{}
