@@ -5,7 +5,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/Denis-Kuso/rss_collector/server/internal/database"
+	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
+
 	_ "github.com/lib/pq" // importing for side effects
 )
 
@@ -24,10 +25,13 @@ func main() {
 		slog.Warn("cannot start db pool", "error", err, "dsn", c.db.dsn)
 		os.Exit(1)
 	}
-	dQueries := database.New(db)
+
+	m := storage.NewUsersModel(db)
+	f := storage.NewFeedsModel(db)
 	a := app{
-		cfg: c,
-		db:  dQueries,
+		cfg:   c, // TODO this could be options instead// fetchParams not entire config
+		users: m,
+		feeds: f,
 	}
 	err = a.serve()
 	if err != nil {

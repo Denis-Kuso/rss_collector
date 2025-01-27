@@ -1,0 +1,31 @@
+  ⚠  https://revive.run/r#exported  exported type PublicUser should have comment or be unexported  
+  api_models.go:9:6
+
+  ⚠  https://revive.run/r#exported  exported type PublicFeed should have comment or be unexported  
+  api_models.go:24:6
+
+  ⚠  https://revive.run/r#exported  exported type PublicPost should have comment or be unexported  
+  api_models.go:46:6
+
+  ⚠  https://revive.run/r#exported  comment on exported type TempFeed should be of the form "TempFeed ..." (with optional leading article)  
+  rss.go:10:1
+
+  ⚠  https://revive.run/r#exported  comment on exported type RSSEntry should be of the form "RSSEntry ..." (with optional leading article)  
+  rss.go:22:1
+
+  ⚠  https://revive.run/r#exported  comment on exported function URLtoFeed should be of the form "URLtoFeed ..."  
+  rss.go:97:1
+
+  ⚠  https://revive.run/r#exported  comment on exported type RSSitem should be of the form "RSSitem ..." (with optional leading article)  
+  rss.go:120:1
+
+  ⚠  https://revive.run/r#unused-parameter  parameter 'cf' seems to be unused, consider removing or renaming it as _  
+  worker.go:41:17
+
+⚠ 8 problems (0 errors, 8 warnings)
+
+Warnings:
+  7  exported          
+  1  unused-parameter  
+
+
