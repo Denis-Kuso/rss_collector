@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Denis-Kuso/rss_collector/server/internal/database"
+	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
 	"github.com/Denis-Kuso/rss_collector/server/internal/validate"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -52,42 +53,18 @@ func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
-	feed, err := a.db.CreateFeed(r.Context(), database.CreateFeedParams{
-		ID:        uuid.New(),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-		UserID:    userID,
-		Name:      userReq.Name,
-		Url:       userReq.URL,
-	})
+	err = a.feeds.Create(r.Context(), userID, userReq.Name, userReq.URL)
 	if err != nil {
-		if err, ok := err.(*pq.Error); ok {
-			// unique key violation https://www.postgresql.org/docs/current/errcodes-appendix.html
-			if err.Code == "23505" {
-				errMsg = fmt.Sprintf("\"%s\" already exists, try following the feed instead", userReq.Name)
-				respondWithError(w, http.StatusConflict, errMsg)
-				return
-			}
+		if errors.Is(err, storage.ErrDuplicate) {
+			errMsg = fmt.Sprintf("already following or you can follow %s", userReq.URL)
+			respondWithError(w, http.StatusConflict, errMsg)
+			return
 		}
 		err = fmt.Errorf("failed creating feed: %q: %q: %v", userReq.Name, userReq.URL, err)
 		a.serverErrorResponse(w, r, err)
 		return
 	}
-	_, err = a.db.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
-		ID:        uuid.New(),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-		UserID:    userID,
-		FeedID:    feed.ID,
-	})
-
-	if err != nil {
-		err = fmt.Errorf("failed creating feed-follow: %q with userID: %q err: %v", userID, feed.ID, err)
-		a.serverErrorResponse(w, r, err)
-		return
-	}
-	publicFeed := dbFeedToPublicFeed(feed)
-	respondWithJSON(w, http.StatusCreated, publicFeed)
+	respondWithJSON(w, http.StatusCreated, nil)
 	return
 }
 

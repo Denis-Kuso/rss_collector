@@ -11,7 +11,7 @@ import (
 )
 
 type FeedStore interface {
-	Create(ctx context.Context, name, URL string) error
+	Create(ctx context.Context, userID uuid.UUID, name, URL string) error
 	Get(ctx context.Context, userID uuid.UUID) error
 	Follow(ctx context.Context, userID, feedID uuid.UUID) error
 	ShowAvailable(ctx context.Context) error
@@ -42,9 +42,37 @@ func NewFeedsModel(db *sql.DB) *FeedsModel {
 }
 
 // TODO establish return values
-func (f *FeedsModel) Create(ctx context.Context, name, URL string) error {
+func (f *FeedsModel) Create(ctx context.Context, userID uuid.UUID, name, URL string) error {
+	feed, err := f.DB.CreateFeed(ctx, database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID:    userID,
+		Name:      name,
+		Url:       URL,
+	})
+	if err != nil {
+		if pqDuplicate(err) {
+			return ErrDuplicate
+		}
+		return err
+	}
+	_, err = f.DB.CreateFeedFollow(ctx, database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID:    userID,
+		FeedID:    feed.ID,
+	})
+	if err != nil {
+		if pqDuplicate(err) {
+			return ErrDuplicate
+		}
+		return err
+	}
 	return nil
 }
+
 func (f *FeedsModel) Get(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
