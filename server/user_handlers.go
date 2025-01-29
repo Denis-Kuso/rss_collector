@@ -8,9 +8,9 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/Denis-Kuso/rss_collector/server/internal/database"
+	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
 	"github.com/Denis-Kuso/rss_collector/server/internal/validate"
 	"github.com/google/uuid"
 )
@@ -54,24 +54,19 @@ func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := a.db.CreateUser(r.Context(), database.CreateUserParams{
-		ID:        uuid.New(),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-		Name:      userReq.Name,
-	})
+	user, err := a.users.Create(r.Context(), userReq.Name)
 	if err != nil {
+		// TODO check for duplicate
 		err = fmt.Errorf("cannot create user: %v: %v", userReq.Name, err)
 		a.serverErrorResponse(w, r, err)
 		return
 	}
 
-	publicUser := dbUserToPublicUser(user, make([]database.Feed, 0)) // no feeds for a new user
-	respondWithJSON(w, http.StatusCreated, publicUser)
+	respondWithJSON(w, http.StatusCreated, user)
 	return
 }
 
-func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request) {
 	limit := defaultQueryLimit
 	var errMsg string
 	desiredLimit := r.URL.Query().Get(queryKey)
@@ -87,8 +82,9 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user data
 			limit = dLimit
 		}
 	}
+	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
 	posts, err := a.db.GetPostsFromUser(r.Context(), database.GetPostsFromUserParams{
-		UserID: user.ID,
+		UserID: userID,
 		Limit:  int32(limit),
 	})
 	if err != nil {
@@ -122,28 +118,19 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user data
 	respondWithJSON(w, http.StatusOK, publicPosts)
 }
 
-func (a *app) GetUserData(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetUserData(w http.ResponseWriter, r *http.Request) {
 
-	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), user.ID)
-	// ErrNoRows is acceptable, since the user might not yet follow anything
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		err = fmt.Errorf("cannot retrieve feed info: %v", err)
-		a.serverErrorResponse(w, r, err)
-		return
+	// TODO need to provide APIkey
+	var APIkey string
+	APIkey = r.Context().Value("APIkey").(string) // TODO this can panic
+	u, err := a.users.Get(r.Context(), APIkey)
+	if err != nil {
+		// TODO what could happen here
+		if errors.Is(err, storage.ErrNotFound) { // TODO this should not really happen and it should be unauthorised
+			respondWithError(w, http.StatusNotFound, "not found")
+			return
+		}
 	}
-	SIZE := len(feedFollows)
-	feedIDs := make([]uuid.UUID, SIZE)
-	for i, f := range feedFollows {
-		feedIDs[i] = f.FeedID
-	}
-	feeds := make([]database.Feed, SIZE)
-	feeds, err = a.db.GetBasicInfoFeed(r.Context(), feedIDs)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		err = fmt.Errorf("cannot retrieve feed info: %v", err)
-		a.serverErrorResponse(w, r, err)
-		return
-	}
-	publicUser := dbUserToPublicUser(user, feeds)
-	respondWithJSON(w, http.StatusOK, publicUser)
+	respondWithJSON(w, http.StatusOK, u)
 	return
 }

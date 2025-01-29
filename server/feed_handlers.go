@@ -15,7 +15,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request) {
 
 	type Request struct {
 		Name string `json:"name"`
@@ -51,11 +51,12 @@ func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request, user database.U
 		return
 	}
 
+	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
 	feed, err := a.db.CreateFeed(r.Context(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
-		UserID:    user.ID,
+		UserID:    userID,
 		Name:      userReq.Name,
 		Url:       userReq.URL,
 	})
@@ -76,12 +77,12 @@ func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request, user database.U
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
-		UserID:    user.ID,
+		UserID:    userID,
 		FeedID:    feed.ID,
 	})
 
 	if err != nil {
-		err = fmt.Errorf("failed creating feed-follow: %q with userID: %q err: %v", user.ID, feed.ID, err)
+		err = fmt.Errorf("failed creating feed-follow: %q with userID: %q err: %v", userID, feed.ID, err)
 		a.serverErrorResponse(w, r, err)
 		return
 	}
@@ -90,7 +91,7 @@ func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request, user database.U
 	return
 }
 
-func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request) {
 	type userRequest struct {
 		FeedID uuid.UUID `json:"feed_id"`
 	}
@@ -126,9 +127,10 @@ func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request, user database.U
 		a.serverErrorResponse(w, r, err)
 		return
 	}
+	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
 	_, err = a.db.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
-		UserID:    user.ID,
+		UserID:    userID,
 		FeedID:    userReq.FeedID,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -151,17 +153,18 @@ func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request, user database.U
 	respondWithJSON(w, http.StatusOK, pubFeed)
 }
 
-func (a *app) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request) {
 
 	var errMsg string
-	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), user.ID)
+	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
+	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			errMsg = fmt.Sprintf("no followed feeds found")
 			respondWithJSON(w, http.StatusOK, errMsg)
 			return
 		}
-		err = fmt.Errorf("cannot retrieve feedfollows for user: %d: %v", user.ID, err)
+		err = fmt.Errorf("cannot retrieve feedfollows for user: %d: %v", userID, err)
 		a.serverErrorResponse(w, r, err)
 		return
 	}
@@ -171,7 +174,7 @@ func (a *app) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user d
 	}
 	feeds, err := a.db.GetBasicInfoFeed(r.Context(), feedIDs)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		err = fmt.Errorf("cannot retrieve feed info: %d: %v", user.ID, err)
+		err = fmt.Errorf("cannot retrieve feed info: %d: %v", userID, err)
 		a.serverErrorResponse(w, r, err)
 		return
 	}
@@ -199,7 +202,7 @@ func (a *app) GetFeeds(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request) {
 	var errMsg string
 	type response struct {
 		Name string `json:"unfollowedFeed"`
@@ -215,9 +218,11 @@ func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database
 		return
 	}
 
+	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
+
 	err = a.db.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
 		FeedID: feedID,
-		UserID: user.ID,
+		UserID: userID,
 	})
 	if err != nil {
 		err = fmt.Errorf("cannot delete following: %v: %v", feedID, err)
