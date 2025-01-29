@@ -1,19 +1,15 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
-	"github.com/Denis-Kuso/rss_collector/server/internal/database"
 	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
 	"github.com/Denis-Kuso/rss_collector/server/internal/validate"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request) {
@@ -91,91 +87,53 @@ func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request) {
 		a.serverErrorResponse(w, r, err)
 		return
 	}
-	FeedID := []uuid.UUID{userReq.FeedID}
-	// does desired feed even exist?
-	feedsInfo, err := a.db.GetBasicInfoFeed(r.Context(), FeedID)
+	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
+	err = a.feeds.Follow(r.Context(), userID, userReq.FeedID)
 	if err != nil {
-		if errors.Is(sql.ErrNoRows, err) {
-			errMsg = fmt.Sprintf("cannot follow feed: %s. No such feed", userReq.FeedID)
-			respondWithError(w, http.StatusNotFound, errMsg)
+		switch err {
+		case storage.ErrNotFound:
+			respondWithError(w, http.StatusNotFound, "resource not found")
+			return
+		case storage.ErrDuplicate:
+			respondWithError(w, http.StatusConflict, "already following")
+			return
+		default:
+			a.serverErrorResponse(w, r, err)
 			return
 		}
-		err = fmt.Errorf("cannot follow feedID: %q: %v", userReq.FeedID, err)
-		a.serverErrorResponse(w, r, err)
-		return
 	}
-	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
-	_, err = a.db.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
-		ID:        uuid.New(),
-		UserID:    userID,
-		FeedID:    userReq.FeedID,
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-	})
-	if err != nil {
-		if err, ok := err.(*pq.Error); ok {
-			// unique key violation https://www.postgresql.org/docs/current/errcodes-appendix.html
-			if err.Code == "23505" {
-				errMsg = fmt.Sprintf("already following feed: %s", userReq.FeedID)
-				respondWithError(w, http.StatusBadRequest, errMsg)
-				return
-			}
-		}
-
-		err = fmt.Errorf("cannot follow feedID: %q: %v", userReq.FeedID, err)
-		a.serverErrorResponse(w, r, err)
-		return
-	}
-	pubFeed := dbFeedToPublicFeed(feedsInfo[0]) // use first and only element
-	respondWithJSON(w, http.StatusOK, pubFeed)
+	// TODO do I return anything (or empty body) or 204?
+	respondWithJSON(w, http.StatusOK, nil)
 }
 
 func (a *app) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request) {
 
-	var errMsg string
 	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
-	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), userID)
+	feeds, err := a.feeds.Get(r.Context(), userID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			errMsg = fmt.Sprintf("no followed feeds found")
-			respondWithJSON(w, http.StatusOK, errMsg)
+		if !errors.Is(err, storage.ErrNotFound) {
+			a.serverErrorResponse(w, r, err)
 			return
 		}
-		err = fmt.Errorf("cannot retrieve feedfollows for user: %d: %v", userID, err)
-		a.serverErrorResponse(w, r, err)
-		return
+		// fallthrough is ok, as we return empty []Feed (not following anything )
 	}
-	feedIDs := make([]uuid.UUID, len(feedFollows))
-	for i, f := range feedFollows {
-		feedIDs[i] = f.FeedID
-	}
-	feeds, err := a.db.GetBasicInfoFeed(r.Context(), feedIDs)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		err = fmt.Errorf("cannot retrieve feed info: %d: %v", userID, err)
-		a.serverErrorResponse(w, r, err)
-		return
-	}
-	publicFeeds := dbFeedToPublicFeeds(feeds)
-	respondWithJSON(w, http.StatusOK, publicFeeds)
+	respondWithJSON(w, http.StatusOK, feeds)
 	return
 }
 
 func (a *app) GetFeeds(w http.ResponseWriter, r *http.Request) {
 
-	var errMsg string
-	feeds, err := a.db.GetFeeds(r.Context())
+	feeds, err := a.feeds.ShowAvailable(r.Context())
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			errMsg = "no feeds found"
-			respondWithJSON(w, http.StatusOK, errMsg)
+		if errors.Is(err, storage.ErrNotFound) {
+			respondWithJSON(w, http.StatusOK, "no feeds")
 			return
 		}
 		err = fmt.Errorf("cannot retrieve feeds: %v", err)
 		a.serverErrorResponse(w, r, err)
 		return
 	}
-	publicFeeds := dbFeedToPublicFeeds(feeds)
-	respondWithJSON(w, http.StatusOK, publicFeeds)
+	respondWithJSON(w, http.StatusOK, feeds)
 	return
 }
 
@@ -197,10 +155,7 @@ func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request) {
 
 	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
 
-	err = a.db.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
-		FeedID: feedID,
-		UserID: userID,
-	})
+	err = a.feeds.Delete(r.Context(), feedID, userID)
 	if err != nil {
 		err = fmt.Errorf("cannot delete following: %v: %v", feedID, err)
 		a.serverErrorResponse(w, r, err)
