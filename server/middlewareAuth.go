@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/Denis-Kuso/rss_collector/server/internal/auth"
+	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
 )
 
 type authenicatedHandler func(w http.ResponseWriter, r *http.Request)
@@ -30,19 +30,17 @@ func (a *app) MiddlewareAuth(handler authenicatedHandler) http.HandlerFunc {
 				return
 			}
 		}
-		// TODO still better to getByID
-		user, err := a.users.Get(r.Context(), APIKey)
+		user, err := a.users.WhoIs(r.Context(), APIKey)
 		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				msg = fmt.Sprintf("no user with APIKey: %s", APIKey)
-				respondWithError(w, http.StatusNotFound, msg)
+			if errors.Is(err, storage.ErrNotFound) {
+				msg = fmt.Sprintf("you must be authenticated to access this resource")
+				respondWithError(w, http.StatusUnauthorized, msg)
 				return
 			}
 			respondWithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		// TODO i really want to pass userID
-		ctx := context.WithValue(r.Context(), "APIkey", user.APIkey) // TODO ensure type safety
+		ctx := context.WithValue(r.Context(), "userID", user.ID) // TODO ensure type safety
 		handler(w, r.WithContext(ctx))
 	}
 }

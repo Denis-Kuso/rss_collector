@@ -20,7 +20,8 @@ var (
 
 type UserStore interface {
 	Create(context.Context, string) (User, error)
-	Get(context.Context, string) (User, error)
+	WhoIs(context.Context, string) (User, error)
+	Get(context.Context, uuid.UUID) (User, error)
 }
 
 type UsersModel struct {
@@ -35,9 +36,10 @@ func NewUsersModel(db *sql.DB) *UsersModel {
 
 // public instance of User
 type User struct {
-	Name   string `json:"username"`
-	Feeds  []Feed `json:"followedFeeds,omitempty"`
-	APIkey string `json:"APIkey,omitempty"`
+	Name   string    `json:"username"`
+	Feeds  []Feed    `json:"followedFeeds,omitempty"`
+	APIkey string    `json:"APIkey,omitempty"`
+	ID     uuid.UUID `json:"-"`
 }
 
 // create user
@@ -59,10 +61,25 @@ func (m *UsersModel) Create(ctx context.Context, username string) (User, error) 
 	return User{Name: u.Name, APIkey: u.ApiKey}, nil
 }
 
-// returns info about user
-func (m *UsersModel) Get(ctx context.Context, APIkey string) (User, error) {
+func (m *UsersModel) WhoIs(ctx context.Context, APIkey string) (User, error) {
+	u, err := m.DB.GetUserByAPIKey(ctx, APIkey)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return User{}, ErrNotFound
+		}
+		return User{}, err
+	}
+	user := User{
+		Name: u.Name,
+		ID:   u.ID,
+	}
+	return user, nil
+}
 
-	user, err := m.DB.GetUserByAPIKey(ctx, APIkey)
+// returns info about user
+func (m *UsersModel) Get(ctx context.Context, userID uuid.UUID) (User, error) {
+
+	user, err := m.DB.GetUserByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return User{}, ErrNotFound

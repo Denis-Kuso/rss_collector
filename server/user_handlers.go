@@ -120,10 +120,8 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) GetUserData(w http.ResponseWriter, r *http.Request) {
 
-	// TODO need to provide APIkey
-	var APIkey string
-	APIkey = r.Context().Value("APIkey").(string) // TODO this can panic
-	u, err := a.users.Get(r.Context(), APIkey)
+	userID := r.Context().Value("userID").(uuid.UUID) // TODO this can panic
+	u, err := a.users.Get(r.Context(), userID)
 	if err != nil {
 		// TODO what could happen here
 		if errors.Is(err, storage.ErrNotFound) { // TODO this should not really happen and it should be unauthorised
