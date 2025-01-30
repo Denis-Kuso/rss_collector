@@ -9,7 +9,23 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strings"
+
+	"github.com/google/uuid"
 )
+
+func GetUserIDFromContext(r *http.Request) (uuid.UUID, bool) {
+	uIDTemp := r.Context().Value(userIDctx)
+	if uIDTemp == nil || (uIDTemp == uuid.UUID{}) {
+		return uuid.UUID{}, false
+	}
+
+	userID, ok := uIDTemp.(uuid.UUID)
+	if !ok {
+		return uuid.UUID{}, false
+	}
+
+	return userID, true
+}
 
 func readJSON(r *http.Request, target interface{}) error { // Decode the request body into the target destination.
 	//TODO does the io.EOF solve this problem

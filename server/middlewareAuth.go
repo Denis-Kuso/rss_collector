@@ -10,6 +10,10 @@ import (
 	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
 )
 
+type contextKey string
+
+const userIDctx = contextKey("userID")
+
 type authenicatedHandler func(w http.ResponseWriter, r *http.Request)
 
 func (a *app) MiddlewareAuth(handler authenicatedHandler) http.HandlerFunc {
@@ -40,7 +44,7 @@ func (a *app) MiddlewareAuth(handler authenicatedHandler) http.HandlerFunc {
 			respondWithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		ctx := context.WithValue(r.Context(), "userID", user.ID) // TODO ensure type safety
+		ctx := context.WithValue(r.Context(), userIDctx, user.ID)
 		handler(w, r.WithContext(ctx))
 	}
 }

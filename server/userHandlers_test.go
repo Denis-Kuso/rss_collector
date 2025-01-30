@@ -12,7 +12,65 @@ import (
 )
 
 type MockUserStore struct {
-	num int // perhaps replace with a map
+	num   int // perhaps replace with a map
+	users map[uuid.UUID]storage.User
+}
+
+var m MockUserStore
+
+func TestGetUser(t *testing.T) {
+	endpoint := "/v1/users"
+	// global KV store - it should do for handlers
+	usrs := make(map[uuid.UUID]storage.User)
+	authID, _ := uuid.NewRandom()
+	unauthID, _ := uuid.NewRandom()
+	usrs[authID] = storage.User{Name: "frodo", APIkey: "1337"}
+	m.users = usrs
+
+	a := app{users: m}
+	tCases := []struct {
+		name     string
+		expCode  int
+		userID   uuid.UUID
+		wantBody string
+	}{
+		{name: "succesful request - authenticated user",
+			expCode:  200,
+			userID:   authID,
+			wantBody: `{"username":"frodo","APIkey":"1337"}`,
+		},
+
+		{name: "authed user - no info",
+			expCode:  404,
+			userID:   unauthID,
+			wantBody: `{"error":"not found"}`},
+		{
+			name:     "no userID (or nil) in context would panic - should not occur",
+			expCode:  401,
+			userID:   uuid.UUID{},
+			wantBody: `{"error":"you must be authenticated to access this resource"}`,
+		},
+	}
+	for _, tc := range tCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodGet, endpoint, nil)
+			if err != nil {
+				t.Fatal("can't make request")
+			}
+			ctx := context.WithValue(context.Background(), userIDctx, tc.userID)
+			req = req.WithContext(ctx)
+			rr := httptest.NewRecorder()
+			a.GetUserData(rr, req)
+			got := rr.Body.String()
+			assertStatus(t, rr.Code, tc.expCode)
+			if rr.Result().Header.Get("content-type") != "application/json" {
+				t.Errorf("failed to set content header, got: %v", rr.Result().Header)
+			}
+			if got != tc.wantBody {
+				t.Errorf("GET %v: want: %v, got: %v", endpoint, tc.wantBody, string(got))
+			}
+		})
+	}
 }
 
 func TestCreateUser(t *testing.T) {
@@ -110,6 +168,10 @@ func (m MockUserStore) Create(ctx context.Context, username string) (storage.Use
 func (m MockUserStore) WhoIs(context.Context, string) (storage.User, error) {
 	return storage.User{}, nil
 }
-func (m MockUserStore) Get(context.Context, uuid.UUID) (storage.User, error) {
-	return storage.User{}, nil
+func (m MockUserStore) Get(ctx context.Context, userID uuid.UUID) (storage.User, error) {
+	u, ok := m.users[userID]
+	if !ok {
+		return storage.User{}, storage.ErrNotFound
+	}
+	return u, nil
 }

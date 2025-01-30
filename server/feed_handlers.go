@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
@@ -48,7 +49,12 @@ func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful // could could logError or logWarning
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
 	err = a.feeds.Create(r.Context(), userID, userReq.Name, userReq.URL)
 	if err != nil {
 		if errors.Is(err, storage.ErrDuplicate) {
@@ -87,7 +93,12 @@ func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request) {
 		a.serverErrorResponse(w, r, err)
 		return
 	}
-	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful // could could logError or logWarning
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
 	err = a.feeds.Follow(r.Context(), userID, userReq.FeedID)
 	if err != nil {
 		switch err {
@@ -108,7 +119,12 @@ func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request) {
 
-	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful // could could logError or logWarning
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
 	feeds, err := a.feeds.Get(r.Context(), userID)
 	if err != nil {
 		if !errors.Is(err, storage.ErrNotFound) {
@@ -153,7 +169,12 @@ func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful // could could logError or logWarning
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
 
 	err = a.feeds.Delete(r.Context(), feedID, userID)
 	if err != nil {

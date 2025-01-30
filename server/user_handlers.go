@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -69,7 +70,12 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request) {
 			limit = dLimit
 		}
 	}
-	userID := r.Context().Value("userID").(uuid.UUID) // TODO generate-type-safe key as it stands this could panic
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
 	posts, err := a.db.GetPostsFromUser(r.Context(), database.GetPostsFromUserParams{
 		UserID: userID,
 		Limit:  int32(limit),
@@ -107,14 +113,21 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) GetUserData(w http.ResponseWriter, r *http.Request) {
 
-	userID := r.Context().Value("userID").(uuid.UUID) // TODO this can panic
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
 	u, err := a.users.Get(r.Context(), userID)
 	if err != nil {
-		// TODO what could happen here
-		if errors.Is(err, storage.ErrNotFound) { // TODO this should not really happen and it should be unauthorised
+		if errors.Is(err, storage.ErrNotFound) { // this should not really happen
+			a.logError(r, err)
 			respondWithError(w, http.StatusNotFound, "not found")
 			return
 		}
+		a.serverErrorResponse(w, r, err)
+		return
 	}
 	respondWithJSON(w, http.StatusOK, u)
 	return
