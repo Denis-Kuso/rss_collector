@@ -26,8 +26,6 @@ func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Name string `json:"name"`
 	}
 	userReq := userRequest{}
-	//var errMsg string
-	//TODO no body throws a panic (uncovered in tests)
 	err := readJSON(r, &userReq)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
@@ -37,30 +35,6 @@ func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "body must not be empty")
 		return
 	}
-	//	if r.Body == nil {
-	//		respondWithError(w, http.StatusBadRequest, "nigga is you crazy")
-	//		return
-	//	}
-	//	data, err := io.ReadAll(r.Body)
-	//	if err != nil {
-	//		errMsg = fmt.Sprintf("could not read request: %v", err)
-	//		respondWithError(w, http.StatusBadRequest, errMsg)
-	//		return
-	//	}
-	//	userReq := userRequest{}
-	//err = json.Unmarshal(data, &userReq)
-	// TODO create custom JSON messages
-	//	if err != nil {
-	//		if jsonErr, ok := err.(*json.SyntaxError); ok {
-	//			errMsg = fmt.Sprintf("cannot parse json, err occured at position: %d", jsonErr.Offset)
-	//			respondWithError(w, http.StatusBadRequest, errMsg)
-	//			return
-	//		}
-	//
-	//		errMsg = "cannot parse json"
-	//		respondWithError(w, http.StatusInternalServerError, errMsg)
-	//		return
-	//	}
 	if ok := validate.ValidateUsername(userReq.Name); !ok {
 		errMsg := fmt.Sprintf("invalid username: %s", userReq.Name)
 		respondWithError(w, http.StatusBadRequest, errMsg)
