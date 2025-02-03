@@ -64,7 +64,7 @@ func initConfig() {
 	}
 	API_URL = os.Getenv(URLKey)
 	if API_URL == "" {
-		fmt.Printf("No server address specified: \"%s\"\n", API_URL)
+		fmt.Printf("No server address specified: %q\n", API_URL)
 		os.Exit(1)
 	}
 	credentialsFile = os.Getenv(credentialsKey)
