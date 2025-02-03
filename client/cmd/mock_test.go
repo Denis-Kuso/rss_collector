@@ -18,7 +18,6 @@ const (
 	notFound
 )
 
-// all responses accounted for?
 // testResp simulates test reponses from the API
 var testResp = map[int]struct {
 	Status int

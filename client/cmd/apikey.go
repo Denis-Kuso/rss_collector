@@ -11,10 +11,6 @@ import (
 
 const APIKEY string = "APIKEY"
 
-// Extracts apiKey from response
-// example {"name":"user", "apiKey": "1337"}
-// return "1337"
-// I could return []bytes as well
 func ExtractAPIKey(body []byte) (string, error) {
 	type resp struct {
 		APIKey string `json:"ApiKey"`
@@ -41,7 +37,6 @@ func ReadAPIKey(filename string) (string, error) {
 	return apikey, nil
 }
 
-// less flexible option of saving
 func SaveAPIKeyF(apiKey []byte, destName string) error {
 	data := []byte(fmt.Sprintf("%s=%s", APIKEY, apiKey))
 	err := os.WriteFile(destName, data, 0666)

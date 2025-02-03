@@ -57,7 +57,6 @@ func createUserAction(out io.Writer, baseURL, name string, overwrite bool) error
 }
 
 func displayUser(out io.Writer, body []byte) error {
-	// verbose option
 	_, err := fmt.Fprintf(out, string(body))
 	return err
 }

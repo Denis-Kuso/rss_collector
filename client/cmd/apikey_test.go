@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	//"os"
 	"testing"
 )
 
@@ -66,7 +65,7 @@ func TestSaveApiKey(t *testing.T) {
 			err := SaveAPIKey(tc.input, &out)
 			if err != nil {
 				if !tc.expErr {
-					t.Fatalf("Expected no err: %v, got: %v", tc.expErr, err) // TODO Could/Should define error type
+					t.Fatalf("Expected no err: %v, got: %v", tc.expErr, err)
 				}
 			}
 			if out.String() != tc.expOut {
@@ -105,7 +104,7 @@ func TestExtractAPIKey(t *testing.T) {
 			out, err := ExtractAPIKey(tc.input)
 			if err != nil {
 				if !tc.expErr {
-					t.Fatalf("Expected no err: %v, got: %v", tc.expErr, err) // TODO Could/Should define error type
+					t.Fatalf("Expected no err: %v, got: %v", tc.expErr, err)
 				}
 			}
 			if out != tc.expOut {

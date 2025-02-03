@@ -7,21 +7,6 @@ import (
 	"testing"
 )
 
-// flow of tests:
-// createUser
-// get user data?
-// getFeeds (already available from server)
-// follow an existing feed
-// get user data
-// add feed
-// get user data
-// get feedFollows
-// delete currently followed feed
-// get user data
-// get posts
-
-// Do it without creating a user first, need to implement
-// saving apikey, then retrieving...
 func TestIntegration(t *testing.T) {
 	fmt.Println("TESTING with real server...")
 	fmt.Println("Ou jea, let's expose some flaws")
@@ -95,7 +80,6 @@ func TestIntegration(t *testing.T) {
 			t.Fatalf("Expected output: %v, got: %s\n", expOut, out.String())
 		}
 	})
-	// Get user data here?
 	t.Run("Follow feed", func(t *testing.T) {
 		expOut := `TODO`
 		var out bytes.Buffer
