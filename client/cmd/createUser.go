@@ -38,10 +38,12 @@ func init() {
 	createCmd.Flags().BoolVarP(&Overwrite, "overwrite", "o", false, "overwrite an existing apikey")
 }
 func createUserAction(out io.Writer, baseURL, name string, overwrite bool) error {
-	_, err := ReadAPIKey(credentialsFile)
-	// user already exists
-	if err == nil && !overwrite {
-		return fmt.Errorf("a user already exists. Use -o flag if you would like to overwrite current user")
+	// prevent accidental overwriting of user
+	if !overwrite {
+		key, _ := ReadAPIKey(credentialsFile) // don't care about err, only if key is present, err return an empty string anyway
+		if key != "" {
+			return fmt.Errorf("a user already exists. Use -o flag if you would like to overwrite current user")
+		}
 	}
 
 	resp, err := createUser(name, baseURL)
