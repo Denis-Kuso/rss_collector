@@ -36,7 +36,7 @@ func TestValidLimit(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := validLimit(tc.input)
 			if result != tc.expOut {
-				t.Errorf("input: \"%s\", expected: %t, got %t\n", tc.input, tc.expOut, result)
+				t.Errorf("input: %q, expected: %t, got %t\n", tc.input, tc.expOut, result)
 			}
 		})
 	}
@@ -74,7 +74,7 @@ func TestValidateUsername(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := validateUsername(tc.input)
 			if result != tc.expOut {
-				t.Errorf("input: \"%s\", expected: %t, got %t\n", tc.input, tc.expOut, result)
+				t.Errorf("input: %q, expected: %t, got %t\n", tc.input, tc.expOut, result)
 			}
 		})
 	}

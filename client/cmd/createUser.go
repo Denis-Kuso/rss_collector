@@ -68,7 +68,7 @@ func createUser(username, url string) (user []byte, err error) {
 	url += ENDPOINT
 
 	if ok := validateUsername(username); !ok {
-		return nil, fmt.Errorf("%v: desired username: \"%s\" too long", ErrInvalidRequest, username)
+		return nil, fmt.Errorf("%v: desired username: %q too long", ErrInvalidRequest, username)
 	}
 	name := struct {
 		Username string `json:"name"`
