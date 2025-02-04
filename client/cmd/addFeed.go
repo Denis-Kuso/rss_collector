@@ -69,7 +69,7 @@ func addFeed(name, feed, url, apiKey string) ([]byte, error) {
 	if err := json.NewEncoder(&body).Encode(feedex); err != nil {
 		return nil, err
 	}
-	resp, err := sendReq(url, http.MethodPost, apiKey, "application/json", http.StatusOK, &body)
+	resp, err := sendReq(url, http.MethodPost, apiKey, "application/json", http.StatusCreated, &body)
 	if err != nil {
 		return nil, err
 	}

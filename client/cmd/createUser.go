@@ -79,7 +79,7 @@ func createUser(username, url string) (user []byte, err error) {
 		return nil, err
 	}
 	apiKey := ""
-	resp, err := sendReq(url, http.MethodPost, apiKey, "application/json", http.StatusOK, &body)
+	resp, err := sendReq(url, http.MethodPost, apiKey, "application/json", http.StatusCreated, &body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
