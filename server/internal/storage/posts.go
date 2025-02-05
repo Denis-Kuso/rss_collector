@@ -42,15 +42,23 @@ func (p *PostModel) Get(ctx context.Context, userID uuid.UUID, limit int) ([]Pos
 		return []Post{}, err
 	}
 	n := len(privatePosts)
+	// uneccessarily complicated (there could be more posts than there are feeds)
 	feedIDs := make([]uuid.UUID, n)
+	for i, pi := range privatePosts {
+		feedIDs[i] = pi.FeedID
+	}
 	feeds, err := p.DB.GetBasicInfoFeed(ctx, feedIDs)
 	if err != nil {
 		return []Post{}, err
 	}
-
+	feedInfo := make(map[uuid.UUID]string)
+	for _, f := range feeds {
+		feedInfo[f.ID] = f.Name
+	}
 	posts := make([]Post, n)
+
 	for i, pi := range privatePosts {
-		posts[i] = Post{URL: pi.Url, Title: pi.Title, FeedName: feeds[i].Name}
+		posts[i] = Post{URL: pi.Url, Title: pi.Title, FeedName: feedInfo[pi.FeedID]}
 	}
 	return posts, nil
 }
