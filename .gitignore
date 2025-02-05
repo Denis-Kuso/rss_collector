@@ -26,6 +26,7 @@ server/TODO.txt
 references.txt
 
 #environment variables
+.env
 /cmd/cli/.env
 /cmd/api/.env
 

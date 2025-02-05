@@ -25,15 +25,15 @@ psql-connect:
 # ##############################################################################
 # DEVELOP
 # ##############################################################################
-binary_name = rss_server
+binary_name = rssd
 commit_hash = $(shell git describe --always --dirty)
-migration_dir = ./sql/schema
+migration_dir = ./migrations
 
 ## build: build the server (binaries)
 .PHONY: build
 build:
 	@echo "building binaries..."
-	go build -ldflags='-X main.version=dev-${commit_hash}' -o=/tmp/bin/${binary_name} .
+	go build -ldflags='-X main.version=dev-${commit_hash}' -o=/tmp/bin/${binary_name} ./cmd/api
 
 ## run: run the server
 .PHONY: run
@@ -87,4 +87,4 @@ push: confirm no-uncommited codeCheck production/lint
 ## production/build: build the server (binaries) for deployment
 .PHONY: production/build
 production/build: confirm no-uncommited codeCheck production/lint
-	GOOS=linux GOARCH=amd64 go build -ldflags=${linker_flags} -o=/tmp/bin/linux_amd64/${binary_name} .
+	GOOS=linux GOARCH=amd64 go build -ldflags=${linker_flags} -o=/tmp/bin/linux_amd64/${binary_name} ./cmd/api
