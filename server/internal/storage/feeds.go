@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Denis-Kuso/rss_collector/server/internal/database"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 // TODO a thought...-> if ctx is passed, do I need to provide userID (and other request-scoped vals) as separate parameter(s)?
@@ -19,18 +19,13 @@ type FeedStore interface {
 	ShowAvailable(ctx context.Context) ([]Feed, error)
 	GetLastFetched(ctx context.Context, numFeeds int) ([]Feed, error)
 	Delete(ctx context.Context, feedID, userID uuid.UUID) error
-	GetPosts(ctx context.Context, userID uuid.UUID, limit int) error
-	SavePost(ctx context.Context, title, URI, desc string, feedID uuid.UUID, pubAt string) error
+	FeedFetched(ctx context.Context, feedID uuid.UUID) error
 }
 
 type Feed struct {
 	Name string
 	URL  string
 	ID   uuid.UUID
-}
-
-type Post struct {
-	// TODO
 }
 
 // no better name?
@@ -181,45 +176,10 @@ func (f *FeedsModel) GetLastFetched(ctx context.Context, numFeeds int) ([]Feed, 
 	return fs, nil
 }
 
-func (f *FeedsModel) GetPosts(ctx context.Context, userID uuid.UUID, limit int) error { // should this be in its own file
-	return nil
-}
-func (f *FeedsModel) SavePost(ctx context.Context, title, URI, desc string, feedID uuid.UUID, pubAt string) error { // should this be in its own file
-	// TODO should pubAt be time.Time?
-	// should this be here?(mark fetched)
-	_, err := f.DB.MarkFeedFetched(context.Background(), feedID)
+func (f *FeedsModel) FeedFetched(ctx context.Context, feedID uuid.UUID) error {
+	_, err := f.DB.MarkFeedFetched(ctx, feedID)
 	if err != nil {
-		return err
-	}
-	description := sql.NullString{}
-	if desc != "" {
-		description.String = desc
-		description.Valid = true
-	}
-
-	tPublished, err := transformPubTime(pubAt)
-	// well this is no good
-	if err != nil {
-		//log.Printf("ERR: %v. Post: %s. Pub time: %s\n", err)
-	}
-	_, err = f.DB.CreatePost(context.Background(), database.CreatePostParams{
-		ID:          uuid.New(),
-		CreatedAt:   time.Now().UTC(),
-		UpdatedAt:   time.Now().UTC(),
-		Title:       title,
-		Url:         URI,
-		Description: description,
-		PublishedAt: tPublished,
-		FeedID:      feedID,
-	})
-	if err != nil {
-		// ignore error if post already present
-		if err, ok := err.(*pq.Error); ok {
-			// unique key violation https://www.postgresql.org/docs/current/errcodes-appendix.html
-			if err.Code == "23505" {
-				return err // TODO duplicate
-			}
-		}
+		return fmt.Errorf("cannot mark feed fetched: %w", err)
 	}
 	return nil
 }

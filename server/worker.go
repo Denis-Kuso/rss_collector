@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -18,7 +20,7 @@ const (
 // fetch from DB feeds that need fetching
 // fetch feeds from their URLS (concurently)
 // mark feed as fetched
-func worker(done <-chan struct{}, fs storage.FeedStore, interRequestInterval time.Duration) {
+func worker(done <-chan struct{}, fs storage.FeedStore, ps storage.PostStore, interRequestInterval time.Duration) {
 	fetchTicker := time.NewTicker(interRequestInterval)
 	ctx := context.Background() // TODO I don't like this...
 	defer fetchTicker.Stop()
@@ -35,15 +37,15 @@ func worker(done <-chan struct{}, fs storage.FeedStore, interRequestInterval tim
 			}
 			for _, feed := range feeds {
 				wg.Add(1)
-				go func(fs storage.FeedStore, URL string, feedID uuid.UUID) {
+				go func(fs storage.FeedStore, ps storage.PostStore, URL string, feedID uuid.UUID) {
 					defer wg.Done()
 					defer func(URL string) {
 						if r := recover(); r != nil {
 							slog.Warn("panic recovered", "error", r, "URL", URL)
 						}
 					}(URL)
-					processFeed(fs, URL, feedID) // TODO also need to receive err
-				}(fs, feed.URL, feed.ID)
+					processFeed(fs, ps, URL, feedID) // TODO also need to receive err
+				}(fs, ps, feed.URL, feed.ID)
 			}
 		case <-done: // server initiatied shutdown
 			wg.Wait()
@@ -53,22 +55,21 @@ func worker(done <-chan struct{}, fs storage.FeedStore, interRequestInterval tim
 	}
 }
 
-func processFeed(fs storage.FeedStore, URL string, feedID uuid.UUID) error {
+func processFeed(fs storage.FeedStore, ps storage.PostStore, URL string, feedID uuid.UUID) error {
 	feed, err := URLtoFeed(URL) // TODO better name could be scrapeFeed
 	if err != nil {
-		//log.Printf("ERR: %v. Couldn't gather feed %s\n", err, URL)
-		return err
+		return fmt.Errorf("cannot process feed: %v: %w", URL, err)
 	}
 	ctx := context.Background() // TODO will probably pass from worker
-	// this could be savePost(s)
 	for _, item := range feed.Items {
-		err := fs.SavePost(ctx, item.Title, item.Link, item.Description, feedID, item.PublishedAt)
+		err := ps.SavePost(ctx, item.Title, item.Link, item.Description, feedID, item.PublishedAt)
 		if err != nil {
-			// TODO then what -- what errors are possible and
-			// should we stop processing other posts?, also this could be paralelised
+			if errors.Is(err, storage.ErrDuplicate) {
+				continue
+			}
+			return fmt.Errorf("cannot process feed: %v: %w", URL, err)
 		}
 	}
-	// TODO perhaps here mark "feedFetched"? -- if done inside CreatePost? and it fails on any
-	// of the posts? is the feed fetched?
-	return nil
+	err = fs.FeedFetched(ctx, feedID)
+	return err
 }

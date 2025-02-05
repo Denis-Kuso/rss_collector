@@ -28,10 +28,12 @@ func main() {
 
 	m := storage.NewUsersModel(db)
 	f := storage.NewFeedsModel(db)
+	p := storage.NewPostsModel(db)
 	a := app{
 		cfg:   c, // TODO this could be options instead// fetchParams not entire config
 		users: m,
 		feeds: f,
+		posts: p,
 	}
 	err = a.serve()
 	if err != nil {
