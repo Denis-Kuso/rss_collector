@@ -23,7 +23,7 @@ func (a *app) serve() error {
 		ErrorLog:          log.Default(), // TODO replace with custom logger
 	}
 	done := make(chan struct{})
-	go worker(done, a.db, time.Duration(a.cfg.fetch.reqInterval)*time.Second)
+	go worker(done, a.feeds, a.posts, time.Duration(a.cfg.fetch.reqInterval)*time.Second)
 	shutdownErr := make(chan error)
 	go func() {
 		quit := make(chan os.Signal, 1) // unbuffered chanel might not receive

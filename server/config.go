@@ -6,7 +6,7 @@ import (
 	"flag"
 	"time"
 
-	"github.com/Denis-Kuso/rss_collector/server/internal/database"
+	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
 )
 
 var (
@@ -24,8 +24,10 @@ type config struct {
 }
 
 type app struct {
-	cfg config
-	db  *database.Queries
+	cfg   config
+	users storage.UserStore
+	feeds storage.FeedStore
+	posts storage.PostStore
 }
 
 type fetchParams struct {

@@ -10,3 +10,7 @@ RETURNING *;
 
 -- name: GetUserByAPIKey :one
 SELECT * FROM users WHERE api_key = $1;
+
+-- name: GetUserByID :one
+SELECT * FROM users WHERE id = $1;
+

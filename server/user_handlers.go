@@ -1,18 +1,14 @@
 package main
 
 import (
-	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
-	"time"
 
-	"github.com/Denis-Kuso/rss_collector/server/internal/database"
+	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
 	"github.com/Denis-Kuso/rss_collector/server/internal/validate"
-	"github.com/google/uuid"
 )
 
 // TODO provide differently
@@ -27,51 +23,35 @@ func (a *app) CreateUser(w http.ResponseWriter, r *http.Request) {
 	type userRequest struct {
 		Name string `json:"name"`
 	}
-	var errMsg string
-	data, err := io.ReadAll(r.Body)
+	userReq := userRequest{}
+	err := readJSON(r, &userReq)
 	if err != nil {
-		errMsg = fmt.Sprintf("could not read request: %v", err)
-		respondWithError(w, http.StatusBadRequest, errMsg)
+		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	userReq := userRequest{}
-	err = json.Unmarshal(data, &userReq)
-	// TODO create custom JSON messages
-	if err != nil {
-		if jsonErr, ok := err.(*json.SyntaxError); ok {
-			errMsg = fmt.Sprintf("cannot parse json, err occured at position: %d", jsonErr.Offset)
-			respondWithError(w, http.StatusBadRequest, errMsg)
-			return
-		}
-
-		errMsg = "cannot parse json"
-		respondWithError(w, http.StatusInternalServerError, errMsg)
+	if userReq.Name == "" {
+		respondWithError(w, http.StatusBadRequest, "body must not be empty")
 		return
 	}
 	if ok := validate.ValidateUsername(userReq.Name); !ok {
-		errMsg = fmt.Sprintf("invalid username: %s", userReq.Name)
+		errMsg := fmt.Sprintf("invalid username: %s", userReq.Name)
 		respondWithError(w, http.StatusBadRequest, errMsg)
 		return
 	}
 
-	user, err := a.db.CreateUser(r.Context(), database.CreateUserParams{
-		ID:        uuid.New(),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-		Name:      userReq.Name,
-	})
+	user, err := a.users.Create(r.Context(), userReq.Name)
 	if err != nil {
+		// TODO check for duplicate
 		err = fmt.Errorf("cannot create user: %v: %v", userReq.Name, err)
 		a.serverErrorResponse(w, r, err)
 		return
 	}
 
-	publicUser := dbUserToPublicUser(user, make([]database.Feed, 0)) // no feeds for a new user
-	respondWithJSON(w, http.StatusCreated, publicUser)
+	respondWithJSON(w, http.StatusCreated, user)
 	return
 }
 
-func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request) {
 	limit := defaultQueryLimit
 	var errMsg string
 	desiredLimit := r.URL.Query().Get(queryKey)
@@ -87,63 +67,41 @@ func (a *app) GetPostsFromUser(w http.ResponseWriter, r *http.Request, user data
 			limit = dLimit
 		}
 	}
-	posts, err := a.db.GetPostsFromUser(r.Context(), database.GetPostsFromUserParams{
-		UserID: user.ID,
-		Limit:  int32(limit),
-	})
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
+	posts, err := a.posts.Get(r.Context(), userID, limit)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			errMsg = "no posts found"
-			respondWithJSON(w, http.StatusOK, errMsg)
+		if !errors.Is(err, storage.ErrNotFound) {
+			a.serverErrorResponse(w, r, err)
 			return
 		}
-		err = fmt.Errorf("cannot retrieve posts: %v", err)
-		a.serverErrorResponse(w, r, err)
-		return
+		// ok to bubble down (empty slice of posts is ok)
 	}
-	SIZE := len(posts)
-	const FIRST int = 0
-	feedID := make([]uuid.UUID, 1) // need an array/slice for sql query
-	feeds := make([]database.Feed, SIZE)
-	for i, p := range posts {
-		feedID[FIRST] = p.FeedID
-		feed, err := a.db.GetBasicInfoFeed(r.Context(), feedID)
-		if err != nil {
-			if !errors.Is(err, sql.ErrNoRows) {
-				err = fmt.Errorf("cannot retrieve feed info: %q: %v", p.FeedID, err)
-				a.serverErrorResponse(w, r, err)
-				return
-			}
-			continue
-		}
-		feeds[i] = feed[FIRST]
-	}
-	publicPosts := dbPostsToPublicPosts(posts, feeds)
-	respondWithJSON(w, http.StatusOK, publicPosts)
+	respondWithJSON(w, http.StatusOK, posts)
 }
 
-func (a *app) GetUserData(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetUserData(w http.ResponseWriter, r *http.Request) {
 
-	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), user.ID)
-	// ErrNoRows is acceptable, since the user might not yet follow anything
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		err = fmt.Errorf("cannot retrieve feed info: %v", err)
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
+	u, err := a.users.Get(r.Context(), userID)
+	if err != nil {
+		if errors.Is(err, storage.ErrNotFound) { // this should not really happen
+			a.logError(r, err)
+			respondWithError(w, http.StatusNotFound, "not found")
+			return
+		}
 		a.serverErrorResponse(w, r, err)
 		return
 	}
-	SIZE := len(feedFollows)
-	feedIDs := make([]uuid.UUID, SIZE)
-	for i, f := range feedFollows {
-		feedIDs[i] = f.FeedID
-	}
-	feeds := make([]database.Feed, SIZE)
-	feeds, err = a.db.GetBasicInfoFeed(r.Context(), feedIDs)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		err = fmt.Errorf("cannot retrieve feed info: %v", err)
-		a.serverErrorResponse(w, r, err)
-		return
-	}
-	publicUser := dbUserToPublicUser(user, feeds)
-	respondWithJSON(w, http.StatusOK, publicUser)
+	respondWithJSON(w, http.StatusOK, u)
 	return
 }

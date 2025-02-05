@@ -1,22 +1,26 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/Denis-Kuso/rss_collector/server/internal/auth"
-	"github.com/Denis-Kuso/rss_collector/server/internal/database"
+	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
 )
 
-type authenicatedHandler func(w http.ResponseWriter, r *http.Request, user database.User)
+type contextKey string
+
+const userIDctx = contextKey("userID")
+
+type authenicatedHandler func(w http.ResponseWriter, r *http.Request)
 
 func (a *app) MiddlewareAuth(handler authenicatedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// Check auth header
-		apiKey, err := auth.GetAPIKey(r.Header)
+		APIKey, err := auth.GetAPIKey(r.Header)
 		var msg string
 		if err != nil {
 			if errors.Is(err, auth.ErrNoAuthHeaderIncluded) {
@@ -30,16 +34,17 @@ func (a *app) MiddlewareAuth(handler authenicatedHandler) http.HandlerFunc {
 				return
 			}
 		}
-		user, err := a.db.GetUserByAPIKey(r.Context(), apiKey)
+		user, err := a.users.WhoIs(r.Context(), APIKey)
 		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				msg = fmt.Sprintf("no user with apiKey: %s", apiKey)
-				respondWithError(w, http.StatusNotFound, msg)
+			if errors.Is(err, storage.ErrNotFound) {
+				msg = fmt.Sprintf("you must be authenticated to access this resource")
+				respondWithError(w, http.StatusUnauthorized, msg)
 				return
 			}
 			respondWithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		handler(w, r, user)
+		ctx := context.WithValue(r.Context(), userIDctx, user.ID)
+		handler(w, r.WithContext(ctx))
 	}
 }

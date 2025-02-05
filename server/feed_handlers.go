@@ -1,21 +1,19 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
-	"time"
 
-	"github.com/Denis-Kuso/rss_collector/server/internal/database"
+	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
 	"github.com/Denis-Kuso/rss_collector/server/internal/validate"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
-func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request) {
 
 	type Request struct {
 		Name string `json:"name"`
@@ -51,46 +49,28 @@ func (a *app) CreateFeed(w http.ResponseWriter, r *http.Request, user database.U
 		return
 	}
 
-	feed, err := a.db.CreateFeed(r.Context(), database.CreateFeedParams{
-		ID:        uuid.New(),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-		UserID:    user.ID,
-		Name:      userReq.Name,
-		Url:       userReq.URL,
-	})
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful // could could logError or logWarning
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
+	err = a.feeds.Create(r.Context(), userID, userReq.Name, userReq.URL)
 	if err != nil {
-		if err, ok := err.(*pq.Error); ok {
-			// unique key violation https://www.postgresql.org/docs/current/errcodes-appendix.html
-			if err.Code == "23505" {
-				errMsg = fmt.Sprintf("\"%s\" already exists, try following the feed instead", userReq.Name)
-				respondWithError(w, http.StatusConflict, errMsg)
-				return
-			}
+		if errors.Is(err, storage.ErrDuplicate) {
+			errMsg = fmt.Sprintf("already following or you can follow %s", userReq.URL)
+			respondWithError(w, http.StatusConflict, errMsg)
+			return
 		}
 		err = fmt.Errorf("failed creating feed: %q: %q: %v", userReq.Name, userReq.URL, err)
 		a.serverErrorResponse(w, r, err)
 		return
 	}
-	_, err = a.db.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
-		ID:        uuid.New(),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-		UserID:    user.ID,
-		FeedID:    feed.ID,
-	})
-
-	if err != nil {
-		err = fmt.Errorf("failed creating feed-follow: %q with userID: %q err: %v", user.ID, feed.ID, err)
-		a.serverErrorResponse(w, r, err)
-		return
-	}
-	publicFeed := dbFeedToPublicFeed(feed)
-	respondWithJSON(w, http.StatusCreated, publicFeed)
+	respondWithJSON(w, http.StatusCreated, nil)
 	return
 }
 
-func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request) {
 	type userRequest struct {
 		FeedID uuid.UUID `json:"feed_id"`
 	}
@@ -113,93 +93,67 @@ func (a *app) FollowFeed(w http.ResponseWriter, r *http.Request, user database.U
 		a.serverErrorResponse(w, r, err)
 		return
 	}
-	FeedID := []uuid.UUID{userReq.FeedID}
-	// does desired feed even exist?
-	feedsInfo, err := a.db.GetBasicInfoFeed(r.Context(), FeedID)
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful // could could logError or logWarning
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
+	err = a.feeds.Follow(r.Context(), userID, userReq.FeedID)
 	if err != nil {
-		if errors.Is(sql.ErrNoRows, err) {
-			errMsg = fmt.Sprintf("cannot follow feed: %s. No such feed", userReq.FeedID)
-			respondWithError(w, http.StatusNotFound, errMsg)
+		switch err {
+		case storage.ErrNotFound:
+			respondWithError(w, http.StatusNotFound, "resource not found")
+			return
+		case storage.ErrDuplicate:
+			respondWithError(w, http.StatusConflict, "already following")
+			return
+		default:
+			a.serverErrorResponse(w, r, err)
 			return
 		}
-		err = fmt.Errorf("cannot follow feedID: %q: %v", userReq.FeedID, err)
-		a.serverErrorResponse(w, r, err)
-		return
 	}
-	_, err = a.db.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
-		ID:        uuid.New(),
-		UserID:    user.ID,
-		FeedID:    userReq.FeedID,
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-	})
-	if err != nil {
-		if err, ok := err.(*pq.Error); ok {
-			// unique key violation https://www.postgresql.org/docs/current/errcodes-appendix.html
-			if err.Code == "23505" {
-				errMsg = fmt.Sprintf("already following feed: %s", userReq.FeedID)
-				respondWithError(w, http.StatusBadRequest, errMsg)
-				return
-			}
-		}
-
-		err = fmt.Errorf("cannot follow feedID: %q: %v", userReq.FeedID, err)
-		a.serverErrorResponse(w, r, err)
-		return
-	}
-	pubFeed := dbFeedToPublicFeed(feedsInfo[0]) // use first and only element
-	respondWithJSON(w, http.StatusOK, pubFeed)
+	// TODO do I return anything (or empty body) or 204?
+	respondWithJSON(w, http.StatusOK, nil)
 }
 
-func (a *app) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) GetAllFollowedFeeds(w http.ResponseWriter, r *http.Request) {
 
-	var errMsg string
-	feedFollows, err := a.db.GetFeedFollowsForUser(r.Context(), user.ID)
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful // could could logError or logWarning
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
+	feeds, err := a.feeds.Get(r.Context(), userID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			errMsg = fmt.Sprintf("no followed feeds found")
-			respondWithJSON(w, http.StatusOK, errMsg)
+		if !errors.Is(err, storage.ErrNotFound) {
+			a.serverErrorResponse(w, r, err)
 			return
 		}
-		err = fmt.Errorf("cannot retrieve feedfollows for user: %d: %v", user.ID, err)
-		a.serverErrorResponse(w, r, err)
-		return
+		// fallthrough is ok, as we return empty []Feed (not following anything )
 	}
-	feedIDs := make([]uuid.UUID, len(feedFollows))
-	for i, f := range feedFollows {
-		feedIDs[i] = f.FeedID
-	}
-	feeds, err := a.db.GetBasicInfoFeed(r.Context(), feedIDs)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		err = fmt.Errorf("cannot retrieve feed info: %d: %v", user.ID, err)
-		a.serverErrorResponse(w, r, err)
-		return
-	}
-	publicFeeds := dbFeedToPublicFeeds(feeds)
-	respondWithJSON(w, http.StatusOK, publicFeeds)
+	respondWithJSON(w, http.StatusOK, feeds)
 	return
 }
 
 func (a *app) GetFeeds(w http.ResponseWriter, r *http.Request) {
 
-	var errMsg string
-	feeds, err := a.db.GetFeeds(r.Context())
+	feeds, err := a.feeds.ShowAvailable(r.Context())
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			errMsg = "no feeds found"
-			respondWithJSON(w, http.StatusOK, errMsg)
+		if errors.Is(err, storage.ErrNotFound) {
+			respondWithJSON(w, http.StatusOK, "no feeds")
 			return
 		}
 		err = fmt.Errorf("cannot retrieve feeds: %v", err)
 		a.serverErrorResponse(w, r, err)
 		return
 	}
-	publicFeeds := dbFeedToPublicFeeds(feeds)
-	respondWithJSON(w, http.StatusOK, publicFeeds)
+	respondWithJSON(w, http.StatusOK, feeds)
 	return
 }
 
-func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request) {
 	var errMsg string
 	type response struct {
 		Name string `json:"unfollowedFeed"`
@@ -215,10 +169,14 @@ func (a *app) UnfollowFeed(w http.ResponseWriter, r *http.Request, user database
 		return
 	}
 
-	err = a.db.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
-		FeedID: feedID,
-		UserID: user.ID,
-	})
+	userID, ok := GetUserIDFromContext(r)
+	if !ok {
+		slog.Warn("BUG - missing/empty userID", "userID", userID) // TODO here is where reqID might be useful // could could logError or logWarning
+		respondWithError(w, http.StatusUnauthorized, "you must be authenticated to access this resource")
+		return
+	}
+
+	err = a.feeds.Delete(r.Context(), feedID, userID)
 	if err != nil {
 		err = fmt.Errorf("cannot delete following: %v: %v", feedID, err)
 		a.serverErrorResponse(w, r, err)
