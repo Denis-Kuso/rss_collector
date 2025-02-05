@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
+	"github.com/Denis-Kuso/rss_collector/internal/storage"
 
 	_ "github.com/lib/pq" // importing for side effects
 )

@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
+	"github.com/Denis-Kuso/rss_collector/internal/storage"
 	"github.com/google/uuid"
 )
 

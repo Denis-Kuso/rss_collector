@@ -2,7 +2,7 @@
 package main
 
 import (
-	"github.com/Denis-Kuso/rss_collector/server/internal/database"
+	"github.com/Denis-Kuso/rss_collector/internal/database"
 	"github.com/google/uuid"
 )
 

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Denis-Kuso/rss_collector/server/internal/auth"
-	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
+	"github.com/Denis-Kuso/rss_collector/internal/auth"
+	"github.com/Denis-Kuso/rss_collector/internal/storage"
 )
 
 type contextKey string

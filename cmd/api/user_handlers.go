@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
-	"github.com/Denis-Kuso/rss_collector/server/internal/validate"
+	"github.com/Denis-Kuso/rss_collector/internal/storage"
+	"github.com/Denis-Kuso/rss_collector/internal/validate"
 )
 
 // TODO provide differently

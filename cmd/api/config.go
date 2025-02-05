@@ -6,7 +6,7 @@ import (
 	"flag"
 	"time"
 
-	"github.com/Denis-Kuso/rss_collector/server/internal/storage"
+	"github.com/Denis-Kuso/rss_collector/internal/storage"
 )
 
 var (

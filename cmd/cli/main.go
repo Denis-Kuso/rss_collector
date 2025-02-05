@@ -1,7 +1,7 @@
 package main
 
-import "github.com/Denis-Kuso/rss_collector/client/cmd"
+import "github.com/Denis-Kuso/rss_collector/cmd/cli/commands"
 
 func main() {
-	cmd.Execute()
+	commands.Execute()
 }
