@@ -18,6 +18,8 @@ confirm:
 .PHONY: no-uncommited
 no-uncommited:
 	@test -z "$(shell git status --porcelain)"
+
+## psql-connect: can you connect to test db
 .PHONY: psql-connect
 psql-connect:
 	psql ${TEST_DB_DSN}
@@ -25,20 +27,30 @@ psql-connect:
 # ##############################################################################
 # DEVELOP
 # ##############################################################################
-binary_name = rssd
+binary_srv_name = rssd
+source_srv = "./cmd/api"
+source_cli = "./cmd/cli"
+binary_cli_name = clipr
+cli_version="0.1.0"
 commit_hash = $(shell git describe --always --dirty)
 migration_dir = ./migrations
 
-## build: build the server (binaries)
-.PHONY: build
-build:
-	@echo "building binaries..."
-	go build -ldflags='-X main.version=dev-${commit_hash}' -o=/tmp/bin/${binary_name} ./cmd/api
+## buildSrv: build the server (binaries)
+.PHONY: buildSrv
+buildSrv:
+	@echo "building server binaries..."
+	go build -ldflags='-X main.version=dev-${commit_hash}' -o=/tmp/bin/${binary_srv_name} ${source_srv}
+
+## buildCLI: build the client (binaries)
+.PHONY: buildCLI
+buildCLI:
+	@echo "building CLI binaries..."
+	go build -ldflags='-X main.version=${cli_version} -X main.commit=dev-${commit_hash}' -o=/tmp/bin/${binary_cli_name} ${source_cli}
 
 ## run: run the server
 .PHONY: run
-run: build migrate/up
-	/tmp/bin/${binary_name} -db-dsn=${TEST_DB_DSN} &
+run: buildSrv migrate/up
+	/tmp/bin/${binary_srv_name} -db-dsn=${TEST_DB_DSN} &
 
 ## test: run all the tests
 .PHONY: test
@@ -84,7 +96,8 @@ production/lint:
 push: confirm no-uncommited codeCheck production/lint
 	git push
 
-## production/build: build the server (binaries) for deployment
+## production/build: build the binaries for deployment
 .PHONY: production/build
 production/build: confirm no-uncommited codeCheck production/lint
-	GOOS=linux GOARCH=amd64 go build -ldflags=${linker_flags} -o=/tmp/bin/linux_amd64/${binary_name} ./cmd/api
+	GOOS=linux GOARCH=amd64 go build -ldflags=${linker_flags} -o=/tmp/bin/linux_amd64/${binary_srv_name} ${source_srv}
+	GOOS=linux GOARCH=amd64 go build -ldflags=${linker_flags} -o=/tmp/bin/linux_amd64/${binary_cli_name} ${source_cli}
